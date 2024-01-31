@@ -1,13 +1,12 @@
 import { MeetingsRepresentatives } from 'src/meetings-representatives/meetings-representatives.entity';
 import { Room } from 'src/rooms/room.entity';
+import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
 import { User } from 'src/users/user.entity';
 import {
   Column,
   Entity,
-  ManyToMany,
   ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 
 @Entity()
@@ -18,10 +17,13 @@ export class Meeting {
   @ManyToOne(() => Room, (room) => room.name)
   room: Room;
 
-  @ManyToMany(() => User, (users) => users.name)
-  users: User[];
+  @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
+  users: UsersMeetings;
 
-  @ManyToOne(() => MeetingsRepresentatives, (meetingsRepresentatives) => meetingsRepresentatives.id)
+  @ManyToOne(
+    () => MeetingsRepresentatives,
+    (meetingsRepresentatives) => meetingsRepresentatives.id,
+  )
   meetingsRepresentatives: MeetingsRepresentatives;
 
   @Column()
@@ -33,6 +35,6 @@ export class Meeting {
   @Column()
   subject: string;
 
-  @OneToMany(() => User, (applicant) => applicant.name)
+  @ManyToOne(() => User, (applicant) => applicant.name)
   applicant: User;
 }

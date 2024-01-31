@@ -1,6 +1,12 @@
 import { Meeting } from 'src/meetings/meeting.entity';
-import { Role } from 'src/roles/role.entity';
-import { Column, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -11,17 +17,17 @@ export class User {
   name: string;
 
   @Column()
-  email: string;
+  username: string;
 
   @Column()
   password: string;
 
-  @ManyToOne(() => Role, (role) => role.name)
-  role: Role;
+  @Column()
+  role: string;
 
-  @ManyToMany(() => Meeting, (meetings) => meetings.subject)
-  meetings: Meeting[]
+  @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
+  meetings: UsersMeetings;
 
-  @ManyToOne(() => Meeting, (meetings) => meetings.subject)
-  hasApplied: Meeting[]
+  @OneToMany(() => Meeting, (meetings) => meetings.subject)
+  hasApplied: Meeting[];
 }

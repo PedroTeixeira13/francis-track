@@ -3,6 +3,8 @@ import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { AuthService } from './auth/auth.service';
 import { Customer } from './customers/customer.entity';
 import { CustomersModule } from './customers/customers.module';
 import { MeetingsRepresentatives } from './meetings-representatives/meetings-representatives.entity';
@@ -11,10 +13,10 @@ import { Meeting } from './meetings/meeting.entity';
 import { MeetingsModule } from './meetings/meetings.module';
 import { Representative } from './representatives/representative.entity';
 import { RepresentativesModule } from './representatives/representatives.module';
-import { Role } from './roles/role.entity';
-import { RolesModule } from './roles/roles.module';
 import { Room } from './rooms/room.entity';
 import { RoomsModule } from './rooms/rooms.module';
+import { UsersMeetings } from './users-meetings/users-meetings.entity';
+import { UsersMeetingsModule } from './users-meetings/users-meetings.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
 
@@ -27,17 +29,26 @@ import { UsersModule } from './users/users.module';
       database: 'francis-track',
       username: 'root',
       password: 'root',
-      entities: [Customer, Meeting, Representative, Role, Room, User, MeetingsRepresentatives],
-      synchronize: true
+      entities: [
+        Customer,
+        Meeting,
+        Representative,
+        Room,
+        User,
+        MeetingsRepresentatives,
+        UsersMeetings,
+      ],
+      synchronize: true,
     }),
     UsersModule,
     RoomsModule,
     CustomersModule,
     RepresentativesModule,
-    RolesModule,
     MeetingsModule,
     CustomersModule,
     MeetingsRepresentativesModule,
+    AuthModule,
+    UsersMeetingsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -48,6 +59,7 @@ import { UsersModule } from './users/users.module';
         whitelist: true,
       }),
     },
+    AuthService,
   ],
 })
 export class AppModule {}
