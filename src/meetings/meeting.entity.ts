@@ -4,9 +4,12 @@ import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
 import { User } from 'src/users/user.entity';
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -37,4 +40,16 @@ export class Meeting {
 
   @ManyToOne(() => User, (applicant) => applicant.name)
   applicant: User;
+
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

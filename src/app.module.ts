@@ -20,6 +20,8 @@ import { UsersMeetingsModule } from './users-meetings/users-meetings.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
+import { TokensModule } from './tokens/tokens.module';
+import { Token } from './tokens/token.entity';
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { UsersController } from './users/users.controller';
         User,
         MeetingsRepresentatives,
         UsersMeetings,
+        Token
       ],
       synchronize: true,
     }),
@@ -50,6 +53,7 @@ import { UsersController } from './users/users.controller';
     MeetingsRepresentativesModule,
     AuthModule,
     UsersMeetingsModule,
+    TokensModule
   ],
   controllers: [AppController, UsersController],
   providers: [

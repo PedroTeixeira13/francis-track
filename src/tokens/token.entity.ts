@@ -1,30 +1,24 @@
-import { Meeting } from 'src/meetings/meeting.entity';
+import { User } from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class Room {
+export class Token {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  name: string;
+  token: string;
 
-  @Column()
-  capacity: number;
-
-  @Column()
-  floor: number;
-
-  @OneToMany(() => Meeting, (meetings) => meetings.subject)
-  meetings: Meeting[];
+  @ManyToOne(() => User, (user) => user.id)
+  user: User;
 
   @Column({ default: true })
   active: boolean;

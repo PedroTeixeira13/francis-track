@@ -44,6 +44,7 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('update/:username')
   async update(
     @Param('username') username: string,
@@ -53,6 +54,7 @@ export class UsersController {
     return `${user.id}, \n${user.name}, \n${user.username}`
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('delete/:username')
   async delete (@Param('username') username: string) {
     return this.usersService.delete(username)

@@ -1,11 +1,15 @@
 import { Meeting } from 'src/meetings/meeting.entity';
+import { Token } from 'src/tokens/token.entity';
 import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -25,12 +29,24 @@ export class User {
   @Column()
   role: string;
 
-  @Column({ default: true })
-  active: boolean;
-
   @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
   meetings: UsersMeetings;
 
   @OneToMany(() => Meeting, (meetings) => meetings.subject)
   hasApplied: Meeting[];
+
+  @OneToMany(() => Token, (tokens) => tokens.id)
+  tokens: Token[];
+
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

@@ -1,6 +1,14 @@
 import { Customer } from 'src/customers/customer.entity';
 import { MeetingsRepresentatives } from 'src/meetings-representatives/meetings-representatives.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Representative {
@@ -18,4 +26,16 @@ export class Representative {
 
   @ManyToOne(() => Customer, (customers) => customers.company)
   company: Customer;
+
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
