@@ -19,6 +19,7 @@ import { UsersMeetings } from './users-meetings/users-meetings.entity';
 import { UsersMeetingsModule } from './users-meetings/users-meetings.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
+import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -50,7 +51,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersMeetingsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UsersController],
   providers: [
     AppService,
     {

@@ -25,6 +25,9 @@ export class User {
   @Column()
   role: string;
 
+  @Column({ default: true })
+  active: boolean;
+
   @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
   meetings: UsersMeetings;
 

@@ -1,13 +1,13 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.findOne(username);
@@ -26,9 +26,9 @@ export class AuthService {
     name: string,
     role: string,
   ) {
-    const users = await this.usersService.find(username);
+    const users = await this.usersService.findOne(username);
 
-    if (users.length) {
+    if (users) {
       throw new BadRequestException('username in use');
     }
 
@@ -37,11 +37,11 @@ export class AuthService {
     return user;
   }
 
-  async signin(username: string, password: string) {
-    const user = await this.usersService.find(username);
+  async login(user: any) {
+    const payload = { name: user.name, sub: user.id };
 
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

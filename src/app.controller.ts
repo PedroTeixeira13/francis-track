@@ -7,19 +7,22 @@ import {
   Post,
   Request,
   Session,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
-import { AppService } from './app.service';
-import { LocalAuthGuard } from './auth/local-auth.guard';
-import { CreateUserDto } from './users/dtos/create-user.dto';
-import { UsersService } from './users/users.service';
 import { AuthService } from './auth/auth.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { LocalAuthGuard } from './auth/local-auth.guard';
+import { UsersService } from './users/users.service';
+import { CreateUserDto } from './users/dtos/create-user.dto';
 
 @Controller()
 export class AppController {
-  constructor(private usersService: UsersService, private authService: AuthService) {}
+  constructor(
+    private usersService: UsersService,
+    private authService: AuthService
+  ) {}
 
-  @Post('/createUser')
+  @Post('create')
   async createUser(@Body() body: CreateUserDto, @Session() session: any) {
     const user = await this.authService.createUser(
       body.username,
@@ -30,11 +33,17 @@ export class AppController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('protected')
+  getHello(@Request() req): string {
+    return req.user;
+  }
+
   @Get('/:id')
-  async findUser(@Param('id') id: string) {
-    const user = await this.usersService.findOne(id);
+  async findUserById(@Param('id') id: string) {
+    const user = await this.usersService.findById(id);
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException('User not found');
     }
     return user;
   }
@@ -42,6 +51,6 @@ export class AppController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   login(@Request() req): any {
-    return req.user;
+    return this.authService.login(req.user)
   }
 }
