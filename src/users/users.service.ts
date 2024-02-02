@@ -13,6 +13,11 @@ export class UsersService {
     return this.repo.save(user);
   }
 
+  async findAll() {
+    const users = await this.repo.find();
+    return users.filter(user => user.active);
+  }  
+
   async findOne(username: string): Promise<User | undefined> {
     if (!username) {
       return null;
@@ -29,7 +34,7 @@ export class UsersService {
   }
 
   async update(username: string, attrs: Partial<User>) {
-    const user = await this.findOne(username);
+    const user = await this.repo.findOne({ where: { username } });
     if (!user) {
       throw new NotFoundException('user not found');
     }
@@ -38,7 +43,7 @@ export class UsersService {
   }
 
   async changeRole(username: string, role: string) {
-    const user = await this.findOne(username);
+    const user = await this.repo.findOne({ where: { username } });
     if (!user) {
       throw new NotFoundException('user not found');
     }
@@ -47,7 +52,7 @@ export class UsersService {
   }
 
   async delete(username: string) {
-    const user = await this.findOne(username);
+    const user = await this.repo.findOne({ where: { username } });
     if (!user) {
       throw new NotFoundException('user not found');
     }

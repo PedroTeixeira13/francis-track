@@ -17,6 +17,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
 import { ChangeRoleDto } from './dtos/change-role.dto';
+import { User } from './user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -42,11 +43,17 @@ export class UsersController {
     return user;
   }
 
+  @Get('/findAll')
+  async findAll() {
+    return this.usersService.findAll();
+    
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async findUserById(@Param('id') id: string) {
     const user = await this.usersService.findById(id);
-    if (!user) {
+    if (!user || !user.active) {
       throw new NotFoundException('User not found');
     }
     return user;
@@ -64,8 +71,11 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('changeRole/:username')
-  async changeRole (@Param('username') username: string, @Body() role: ChangeRoleDto) {
-    return this.usersService.changeRole(username, role.role)
+  async changeRole(
+    @Param('username') username: string,
+    @Body() role: ChangeRoleDto,
+  ) {
+    return this.usersService.changeRole(username, role.role);
   }
 
   @UseGuards(JwtAuthGuard)
