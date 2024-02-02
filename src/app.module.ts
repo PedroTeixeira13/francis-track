@@ -22,6 +22,7 @@ import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
 import { TokensModule } from './tokens/tokens.module';
 import { Token } from './tokens/token.entity';
+import { RoomsController } from './rooms/rooms.controller';
 
 @Module({
   imports: [
@@ -55,7 +56,7 @@ import { Token } from './tokens/token.entity';
     UsersMeetingsModule,
     TokensModule
   ],
-  controllers: [AppController, UsersController],
+  controllers: [AppController, UsersController, RoomsController],
   providers: [
     AppService,
     {

@@ -37,6 +37,15 @@ export class UsersService {
     return this.repo.save(user);
   }
 
+  async changeRole(username: string, role: string) {
+    const user = await this.findOne(username);
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+    user.role = role;
+    return this.repo.save(user);
+  }
+
   async delete(username: string) {
     const user = await this.findOne(username);
     if (!user) {
