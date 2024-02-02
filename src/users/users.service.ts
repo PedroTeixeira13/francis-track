@@ -57,6 +57,7 @@ export class UsersService {
       throw new NotFoundException('user not found');
     }
     user.active = false;
+    user.deletedAt = new Date()
     return this.repo.save(user);
   }
 }
