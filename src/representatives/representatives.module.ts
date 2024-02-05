@@ -7,6 +7,7 @@ import { Representative } from './representative.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Representative])],
   controllers: [RepresentativesController],
-  providers: [RepresentativesService]
+  providers: [RepresentativesService],
+  exports: [RepresentativesService]
 })
 export class RepresentativesModule {}

@@ -1,12 +1,12 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsString } from 'class-validator';
 
 export class CreateRoomDto {
   @IsString()
-  name: string
+  name: string;
 
   @IsNumber()
-  capacity: number
+  capacity: number;
 
   @IsNumber()
-  floor: number
+  floor: number;
 }

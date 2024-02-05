@@ -35,7 +35,7 @@ export class RoomsService {
   }
 
   async deleteRoom(name: string) {
-    const room = await this.repo.findOne({ where: { name } });
+    const room = await this.findRoom(name);
     if (!room) {
       throw new NotFoundException('room not found');
     }
