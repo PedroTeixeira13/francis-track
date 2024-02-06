@@ -3,21 +3,19 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Patch,
   Post,
   Request,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local-auth.guard';
+import { ChangeRoleDto } from './dtos/change-role.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
-import { ChangeRoleDto } from './dtos/change-role.dto';
-import { User } from './user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -46,17 +44,12 @@ export class UsersController {
   @Get('/findAll')
   async findAll() {
     return this.usersService.findAll();
-    
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   async findUserById(@Param('id') id: string) {
-    const user = await this.usersService.findById(id);
-    if (!user || !user.active) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+    return this.usersService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)

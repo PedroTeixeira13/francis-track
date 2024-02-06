@@ -13,10 +13,12 @@ export class RoomsService {
   }
 
   async findRoom(name: string) {
-    if (!name) {
-      return null;
+    const room = await this.repo.findOne({ where: { name } });
+
+    if (!room) {
+      throw new NotFoundException('room not found');
     }
-    return this.repo.findOne({ where: { name } });
+    return room;
   }
 
   async createRoom(name: string, capacity: number, floor: number) {

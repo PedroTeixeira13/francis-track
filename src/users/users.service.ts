@@ -15,22 +15,23 @@ export class UsersService {
 
   async findAll() {
     const users = await this.repo.find();
-    return users.filter(user => user.active);
-  }  
+    return users.filter((user) => user.active);
+  }
 
   async findOne(username: string): Promise<User | undefined> {
-    if (!username) {
-      return null;
+    const user = await this.repo.findOne({ where: { username } });
+    if (!user || !user.active) {
+      throw new NotFoundException('User not found');
     }
-    return this.repo.findOne({ where: { username } });
+    return user;
   }
 
   async findById(id: string): Promise<User | undefined> {
-    if (!id) {
-      return null;
+    const user = await this.repo.findOne({ where: { id } });
+    if (!user || !user.active) {
+      throw new NotFoundException('User not found');
     }
-
-    return this.repo.findOne({ where: { id } });
+    return user;
   }
 
   async update(username: string, attrs: Partial<User>) {
@@ -57,7 +58,7 @@ export class UsersService {
       throw new NotFoundException('user not found');
     }
     user.active = false;
-    user.deletedAt = new Date()
+    user.deletedAt = new Date();
     return this.repo.save(user);
   }
 }

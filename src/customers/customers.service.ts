@@ -13,10 +13,12 @@ export class CustomersService {
   }
 
   async findCustomer(company: string) {
-    if (!company) {
-      return null;
+    const customer = await this.repo.findOne({ where: { company } });
+
+    if (!customer) {
+      throw new NotFoundException('customer not found');
     }
-    return this.repo.findOne({ where: { company } });
+    return customer;
   }
 
   async createCustomer(company: string) {
