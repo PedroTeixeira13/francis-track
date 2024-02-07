@@ -43,10 +43,6 @@ export class CustomersController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    const customers = await this.customersService.findCustomer(body.company);
-    if (customers) {
-      throw new BadRequestException('customer name in use');
-    }
     const customer = await this.customersService.createCustomer(body.company);
 
     return customer;

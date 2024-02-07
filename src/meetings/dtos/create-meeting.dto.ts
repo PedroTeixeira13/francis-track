@@ -1,27 +1,21 @@
-import { IsArray, IsDate, IsString, MinDate } from "class-validator";
+import { IsArray, IsString } from 'class-validator';
 
 export class CreateMeetingDto {
+  @IsString()
+  subject: string;
 
   @IsString()
-  subject: string
+  roomName: string;
 
   @IsString()
-  roomName: string
-
-  @IsDate()
-  @MinDate(new Date())
-  startTime: Date
-  
-  @IsDate()
-  @MinDate(new Date())
-  endTime: Date
+  startTime: string;
 
   @IsString()
-  applicant: string
+  endTime: string;
 
   @IsArray()
-  users: string[]
+  users: string[];
 
   @IsArray()
-  representatives: string[]
+  representatives: string[];
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from './customer.entity';
 import { Repository } from 'typeorm';
@@ -22,6 +26,10 @@ export class CustomersService {
   }
 
   async createCustomer(company: string) {
+    const customers = await this.repo.findOne({ where: { company } });
+    if (customers) {
+      throw new BadRequestException('customer name in use');
+    }
     const customer = this.repo.create({ company });
 
     return this.repo.save(customer);

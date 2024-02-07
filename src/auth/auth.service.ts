@@ -8,7 +8,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private tokensService: TokensService
+    private tokensService: TokensService,
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -28,7 +28,7 @@ export class AuthService {
     name: string,
     role: string,
   ) {
-    const users = await this.usersService.findOne(username);
+    const users = await this.usersService.checkOne(username);
 
     if (users) {
       throw new BadRequestException('username in use');
@@ -41,8 +41,8 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { name: user.name, sub: user.id };
-    const token = this.jwtService.sign(payload)
-    this.tokensService.create(token, payload.sub)
+    const token = this.jwtService.sign(payload);
+    this.tokensService.create(token, payload.sub);
 
     return {
       access_token: token,

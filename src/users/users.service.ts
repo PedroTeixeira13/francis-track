@@ -26,6 +26,10 @@ export class UsersService {
     return user;
   }
 
+  async checkOne(username: string): Promise<User | undefined> {
+    return await this.repo.findOne({ where: { username } });
+  }
+
   async findById(id: string): Promise<User | undefined> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user || !user.active) {

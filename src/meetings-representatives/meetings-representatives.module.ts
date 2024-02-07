@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { MeetingsRepresentativesService } from './meetings-representatives.service';
-import { MeetingsRepresentativesController } from './meetings-representatives.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { RepresentativesModule } from 'src/representatives/representatives.module';
 import { MeetingsRepresentatives } from './meetings-representatives.entity';
+import { MeetingsRepresentativesService } from './meetings-representatives.service';
 
 @Module({
-  controllers: [MeetingsRepresentativesController],
   providers: [MeetingsRepresentativesService],
-  imports: [TypeOrmModule.forFeature([MeetingsRepresentatives])]
+  imports: [
+    TypeOrmModule.forFeature([MeetingsRepresentatives]),
+    RepresentativesModule,
+  ],
+  exports: [MeetingsRepresentativesService]
 })
 export class MeetingsRepresentativesModule {}

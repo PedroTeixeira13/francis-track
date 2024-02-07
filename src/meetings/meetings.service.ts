@@ -1,17 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Meeting } from './meeting.entity';
+import { MeetingsRepresentativesService } from 'src/meetings-representatives/meetings-representatives.service';
+import { RoomsService } from 'src/rooms/rooms.service';
+import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
+import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
-import { UsersService } from 'src/users/users.service';
-import { RoomsService } from 'src/rooms/rooms.service';
+import { Meeting } from './meeting.entity';
+const { parseJSON } = require('date-fns');
 
 @Injectable()
 export class MeetingsService {
   constructor(
     @InjectRepository(Meeting) private repo: Repository<Meeting>,
+
     private usersService: UsersService,
     private roomsService: RoomsService,
+    private usersMeetingsService: UsersMeetingsService,
+    private meetingsRepresentativesService: MeetingsRepresentativesService,
   ) {}
 
   async findAll() {
@@ -27,19 +33,34 @@ export class MeetingsService {
     return meeting;
   }
 
-  async create(body: CreateMeetingDto) {
-    const meeting = new Meeting();
-    const applicant = await this.usersService.findOne(body.applicant);
-    meeting.applicant = applicant;
-    const room = await this.roomsService.findRoom(body.roomName);
-    meeting.room = room;
-    meeting.startTime = body.startTime;
-    meeting.endTime = body.endTime;
-    meeting.subject = body.subject;
-    for (let i = 0; i < body.users.length; i++) {
-      const user = await this.usersService.findOne(body.users[i]);
-      meeting.users.users.push(user);
-    }
+  async create(body: CreateMeetingDto, applicantId: string) {
+    const newMeeting = await this.repo.create();
+
+    const { roomName, users, representatives, subject, startTime, endTime } = body;
+
+    const applicant = await this.usersService.findById(applicantId);
+    newMeeting.applicant = applicant;
+
+    const room = await this.roomsService.findRoom(roomName);
+    newMeeting.room = room;
+    newMeeting.subject = subject;
+
+    const utcStartTime = parseJSON(startTime);
+    newMeeting.startTime = utcStartTime;
+
+    const utcEndTime = parseJSON(endTime);
+    newMeeting.endTime = utcEndTime;
+
+    newMeeting.users = await this.usersMeetingsService.createMeetingUser(
+      users,
+      newMeeting,
+    );
+    newMeeting.meetingsRepresentatives =
+      await this.meetingsRepresentativesService.createMeetingRepresentative(
+        representatives,
+        newMeeting,
+      );
+    return this.repo.save(newMeeting);
   }
 
   async update(subject: string, attrs: Partial<Meeting>) {
