@@ -16,6 +16,6 @@ export class CreateMeetingDto {
   @IsArray()
   users: string[];
 
-  @IsArray()
-  representatives: string[];
+  @IsString()
+  customer: string;
 }

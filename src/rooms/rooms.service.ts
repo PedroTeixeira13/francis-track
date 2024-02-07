@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './room.entity';
@@ -22,6 +22,10 @@ export class RoomsService {
   }
 
   async createRoom(name: string, capacity: number, floor: number) {
+    const rooms = await this.repo.findOne({where: {name}});
+    if (rooms) {
+      throw new BadRequestException('room name in use');
+    }
     const room = this.repo.create({ name, capacity, floor });
 
     return this.repo.save(room);

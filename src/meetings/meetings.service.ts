@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MeetingsRepresentativesService } from 'src/meetings-representatives/meetings-representatives.service';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
 import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
+import { CustomersService } from 'src/customers/customers.service';
 const { parseJSON } = require('date-fns');
 
 @Injectable()
@@ -17,7 +17,7 @@ export class MeetingsService {
     private usersService: UsersService,
     private roomsService: RoomsService,
     private usersMeetingsService: UsersMeetingsService,
-    private meetingsRepresentativesService: MeetingsRepresentativesService,
+    private customersService: CustomersService,
   ) {}
 
   async findAll() {
@@ -36,7 +36,7 @@ export class MeetingsService {
   async create(body: CreateMeetingDto, applicantId: string) {
     const newMeeting = await this.repo.create();
 
-    const { roomName, users, representatives, subject, startTime, endTime } = body;
+    const { roomName, users, customer, subject, startTime, endTime } = body;
 
     const applicant = await this.usersService.findById(applicantId);
     newMeeting.applicant = applicant;
@@ -55,11 +55,9 @@ export class MeetingsService {
       users,
       newMeeting,
     );
-    newMeeting.meetingsRepresentatives =
-      await this.meetingsRepresentativesService.createMeetingRepresentative(
-        representatives,
-        newMeeting,
-      );
+
+    newMeeting.customer = await this.customersService.findCustomer(customer);
+
     return this.repo.save(newMeeting);
   }
 

@@ -7,22 +7,20 @@ import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { Customer } from './customers/customer.entity';
 import { CustomersModule } from './customers/customers.module';
-import { MeetingsRepresentatives } from './meetings-representatives/meetings-representatives.entity';
-import { MeetingsRepresentativesModule } from './meetings-representatives/meetings-representatives.module';
 import { Meeting } from './meetings/meeting.entity';
 import { MeetingsModule } from './meetings/meetings.module';
 import { Representative } from './representatives/representative.entity';
 import { RepresentativesModule } from './representatives/representatives.module';
 import { Room } from './rooms/room.entity';
+import { RoomsController } from './rooms/rooms.controller';
 import { RoomsModule } from './rooms/rooms.module';
+import { Token } from './tokens/token.entity';
+import { TokensModule } from './tokens/tokens.module';
 import { UsersMeetings } from './users-meetings/users-meetings.entity';
 import { UsersMeetingsModule } from './users-meetings/users-meetings.module';
 import { User } from './users/user.entity';
-import { UsersModule } from './users/users.module';
 import { UsersController } from './users/users.controller';
-import { TokensModule } from './tokens/tokens.module';
-import { Token } from './tokens/token.entity';
-import { RoomsController } from './rooms/rooms.controller';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -39,9 +37,8 @@ import { RoomsController } from './rooms/rooms.controller';
         Representative,
         Room,
         User,
-        MeetingsRepresentatives,
         UsersMeetings,
-        Token
+        Token,
       ],
       synchronize: true,
     }),
@@ -51,10 +48,9 @@ import { RoomsController } from './rooms/rooms.controller';
     RepresentativesModule,
     MeetingsModule,
     CustomersModule,
-    MeetingsRepresentativesModule,
     AuthModule,
     UsersMeetingsModule,
-    TokensModule
+    TokensModule,
   ],
   controllers: [AppController, UsersController, RoomsController],
   providers: [

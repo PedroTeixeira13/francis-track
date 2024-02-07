@@ -5,21 +5,16 @@ import {
   Param,
   Post,
   Request,
-  UnauthorizedException,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
-import { MeetingsService } from './meetings.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
-import { UsersService } from 'src/users/users.service';
+import { MeetingsService } from './meetings.service';
 
 @Controller('meetings')
 @UseGuards(JwtAuthGuard)
 export class MeetingsController {
-  constructor(
-    private meetingsService: MeetingsService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private meetingsService: MeetingsService) {}
 
   @Get('/findAll')
   async findAll() {

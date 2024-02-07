@@ -1,4 +1,4 @@
-import { MeetingsRepresentatives } from 'src/meetings-representatives/meetings-representatives.entity';
+import { Customer } from 'src/customers/customer.entity';
 import { Room } from 'src/rooms/room.entity';
 import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
 import { User } from 'src/users/user.entity';
@@ -23,11 +23,8 @@ export class Meeting {
   @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
   users: UsersMeetings;
 
-  @ManyToOne(
-    () => MeetingsRepresentatives,
-    (meetingsRepresentatives) => meetingsRepresentatives.id,
-  )
-  meetingsRepresentatives: MeetingsRepresentatives;
+  @ManyToOne(() => Customer, (customer) => customer.company)
+  customer: Customer;
 
   @Column()
   startTime: Date;

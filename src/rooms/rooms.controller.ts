@@ -43,10 +43,6 @@ export class RoomsController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    const rooms = await this.roomsService.findRoom(body.name);
-    if (rooms) {
-      throw new BadRequestException('room name in use');
-    }
     const room = await this.roomsService.createRoom(
       body.name,
       body.capacity,

@@ -7,7 +7,7 @@ import { UsersModule } from 'src/users/users.module';
 import { Meeting } from './meeting.entity';
 import { MeetingsController } from './meetings.controller';
 import { MeetingsService } from './meetings.service';
-import { MeetingsRepresentativesModule } from 'src/meetings-representatives/meetings-representatives.module';
+import { CustomersModule } from 'src/customers/customers.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { MeetingsRepresentativesModule } from 'src/meetings-representatives/meet
     RoomsModule,
     RepresentativesModule,
     UsersMeetingsModule,
-    MeetingsRepresentativesModule,
+    CustomersModule
   ],
   controllers: [MeetingsController],
   providers: [MeetingsService],

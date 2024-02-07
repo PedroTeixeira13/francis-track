@@ -1,3 +1,4 @@
+import { Meeting } from 'src/meetings/meeting.entity';
 import { Representative } from 'src/representatives/representative.entity';
 import {
   Column,
@@ -6,7 +7,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 
 @Entity()
@@ -19,6 +20,9 @@ export class Customer {
 
   @OneToMany(() => Representative, (representatives) => representatives.name)
   representatives: Representative[];
+
+  @OneToMany(() => Meeting, (meetings) => meetings.subject)
+  meetings: Meeting[];
 
   @Column({ default: true })
   active: boolean;
