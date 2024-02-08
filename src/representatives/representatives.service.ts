@@ -16,12 +16,17 @@ export class RepresentativesService {
   ) {}
 
   async findAll() {
-    const representatives = await this.repo.find();
+    const representatives = await this.repo.find({
+      relations: { company: true },
+    });
     return representatives.filter((representative) => representative.active);
   }
 
   async findOne(name: string): Promise<Representative | undefined> {
-    const representative = await this.repo.findOne({ where: { name } });
+    const representative = await this.repo.findOne({
+      where: { name },
+      relations: { company: true },
+    });
     if (!representative || !representative.active) {
       throw new NotFoundException('representative not found');
     }

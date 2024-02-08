@@ -17,7 +17,7 @@ export class Meeting {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Room, (room) => room.name)
+  @ManyToOne(() => Room, (room) => room.id)
   room: Room;
 
   @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)

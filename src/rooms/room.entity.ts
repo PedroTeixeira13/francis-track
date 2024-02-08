@@ -23,7 +23,7 @@ export class Room {
   @Column()
   floor: number;
 
-  @OneToMany(() => Meeting, (meetings) => meetings.subject)
+  @OneToMany(() => Meeting, (meetings) => meetings.id)
   meetings: Meeting[];
 
   @Column({ default: true })

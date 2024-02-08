@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
 import { UsersService } from 'src/users/users.service';
-import { Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
 import { CustomersService } from 'src/customers/customers.service';
@@ -21,7 +21,9 @@ export class MeetingsService {
   ) {}
 
   async findAll() {
-    const meetings = await this.repo.find();
+    const meetings = await this.repo.find({
+      relations: { applicant: true, customer: true, room: true },
+    });
     return meetings.filter((meeting) => meeting.active);
   }
 
@@ -38,25 +40,22 @@ export class MeetingsService {
 
     const { roomName, users, customer, subject, startTime, endTime } = body;
 
-    const applicant = await this.usersService.findById(applicantId);
-    newMeeting.applicant = applicant;
-
-    const room = await this.roomsService.findRoom(roomName);
-    newMeeting.room = room;
     newMeeting.subject = subject;
+    newMeeting.applicant = await this.usersService.findById(applicantId);
+    newMeeting.room = await this.roomsService.findRoom(roomName);
+    newMeeting.customer = await this.customersService.findCustomer(customer);
+    newMeeting.users = await this.usersMeetingsService.createMeetingUser(
+      users,
+      newMeeting,
+    );
+
+    
 
     const utcStartTime = parseJSON(startTime);
     newMeeting.startTime = utcStartTime;
 
     const utcEndTime = parseJSON(endTime);
     newMeeting.endTime = utcEndTime;
-
-    newMeeting.users = await this.usersMeetingsService.createMeetingUser(
-      users,
-      newMeeting,
-    );
-
-    newMeeting.customer = await this.customersService.findCustomer(customer);
 
     return this.repo.save(newMeeting);
   }
