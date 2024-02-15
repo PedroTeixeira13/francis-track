@@ -5,11 +5,12 @@ import {
   Param,
   Post,
   Request,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { MeetingsService } from './meetings.service';
+const { format, differenceInMinutes } = require('date-fns');
 
 @Controller('meetings')
 @UseGuards(JwtAuthGuard)
@@ -18,17 +19,55 @@ export class MeetingsController {
 
   @Get('/findAll')
   async findAll() {
-    return this.meetingsService.findAll();
+    const meetings = await this.meetingsService.findAll();
+    const meetingsReturn = meetings.map((m) => {
+      return {
+        subject: m.subject,
+        room: m.room.name,
+        startTime: format(m.startTime, 'EEEE, dd MMMM yyyy'),
+        endTime: format(m.endTime, 'EEEE, dd MMMM yyyy'),
+        meetingDuration:
+          differenceInMinutes(m.endTime, m.startTime) + ' minutes',
+        customer: m.customer.company,
+        representatives: [m.customer.representatives],
+        users: [m.users],
+        applicant: m.applicant.username,
+      };
+    });
+    return meetingsReturn;
   }
 
   @Get('/:subject')
   async findMeeting(@Param('subject') subject: string) {
-    return this.meetingsService.findOne(subject);
+    const m = await this.meetingsService.findOne(subject);
+    const meetingReturn = {
+      subject: m.subject,
+      room: m.room.name,
+      startTime: format(m.startTime, 'EEEE, dd MMMM yyyy'),
+      endTime: format(m.endTime, 'EEEE, dd MMMM yyyy'),
+      meetingDuration: differenceInMinutes(m.endTime, m.startTime) + ' minutes',
+      customer: m.customer.company,
+      representatives: [m.customer.representatives],
+      users: [m.users],
+      applicant: m.applicant.username,
+    };
+    return meetingReturn;
   }
 
   @Post('/create')
   async create(@Body() body: CreateMeetingDto, @Request() req) {
-    const rooms = await this.meetingsService.create(body, req.user.id);
-    return rooms;
+    const m = await this.meetingsService.create(body, req.user.id);
+    const meetingReturn = {
+      subject: m.subject,
+      room: m.room.name,
+      startTime: format(m.startTime, 'EEEE, dd MMMM yyyy'),
+      endTime: format(m.endTime, 'EEEE, dd MMMM yyyy'),
+      meetingDuration: differenceInMinutes(m.endTime, m.startTime) + ' minutes',
+      customer: m.customer.company,
+      representatives: [m.customer.representatives],
+      users: [m.users],
+      applicant: m.applicant.username,
+    };
+    return meetingReturn;
   }
 }

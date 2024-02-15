@@ -13,7 +13,6 @@ const { parseJSON } = require('date-fns');
 export class MeetingsService {
   constructor(
     @InjectRepository(Meeting) private repo: Repository<Meeting>,
-
     private usersService: UsersService,
     private roomsService: RoomsService,
     private usersMeetingsService: UsersMeetingsService,
@@ -28,7 +27,7 @@ export class MeetingsService {
   }
 
   async findOne(subject: string) {
-    const meeting = this.repo.findOne({ where: { subject } });
+    const meeting = await this.repo.findOne({ where: { subject }, relations: { applicant: true, customer: true, room: true } });
     if (!meeting) {
       throw new NotFoundException('meeting not found');
     }
@@ -36,11 +35,10 @@ export class MeetingsService {
   }
 
   async create(body: CreateMeetingDto, applicantId: string) {
-    
     const newMeeting = await this.repo.create();
-    
+
     const { roomName, users, customer, subject, startTime, endTime } = body;
-    
+
     newMeeting.subject = subject;
     newMeeting.applicant = await this.usersService.findById(applicantId);
     newMeeting.room = await this.roomsService.findRoom(roomName);
@@ -49,13 +47,14 @@ export class MeetingsService {
       users,
       newMeeting,
     );
-    
+
+    //TODO: lógica de impedir criação de reuniões simultaneas em uma sala
     const utcStartTime = parseJSON(startTime);
     newMeeting.startTime = utcStartTime;
-    
+
     const utcEndTime = parseJSON(endTime);
     newMeeting.endTime = utcEndTime;
-    
+
     delete newMeeting.users.meetings;
     return this.repo.save(newMeeting);
   }

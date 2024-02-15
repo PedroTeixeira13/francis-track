@@ -18,37 +18,47 @@ import { UsersService } from 'src/users/users.service';
 import { UpdateCustomerDto } from './dtos/update-customer.dto';
 
 @Controller('customers')
+@UseGuards(JwtAuthGuard)
 export class CustomersController {
   constructor(
     private customersService: CustomersService,
     private usersService: UsersService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get('/findAll')
   async findAll() {
-    return this.customersService.findAll();
+    const customers = await this.customersService.findAll();
+    const customersReturn = customers.map((cust) => {
+      return { company: cust.company, representatives: [cust.representatives] };
+    });
+    return customersReturn;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('/:company')
   async findCustomer(@Param('company') company: string) {
-    return this.customersService.findCustomer(company);
+    const cust = await this.customersService.findCustomer(company);
+    const custReturn = {
+      company: cust.company,
+      representatives: [cust.representatives],
+    };
+    return custReturn;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('/create')
   async createCustomer(@Body() body: CreateCustomerDto, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    const customer = await this.customersService.createCustomer(body.company);
+    const cust = await this.customersService.createCustomer(body.company);
 
-    return customer;
+    const custReturn = {
+      company: cust.company,
+      representatives: [cust.representatives],
+    };
+    return custReturn;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('/update/:company')
   async updateCustomer(
     @Param('company') company: string,
@@ -59,16 +69,25 @@ export class CustomersController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    return this.customersService.updateCustomer(company, body);
+    const cust = await this.customersService.updateCustomer(company, body);
+    const custReturn = {
+      company: cust.company,
+      representatives: [cust.representatives],
+    };
+    return custReturn;
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete('/delete/:company')
   async deleteCustomer(@Param('company') company: string, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    return this.customersService.deleteRoom(company);
+    const cust = await this.customersService.deleteRoom(company);
+    const custReturn = {
+      company: cust.company,
+      representatives: [cust.representatives],
+    };
+    return custReturn;
   }
 }

@@ -27,13 +27,23 @@ export class RoomsController {
   @UseGuards(JwtAuthGuard)
   @Get('/findAll')
   async findAll() {
-    return this.roomsService.findAll();
+    const rooms = await this.roomsService.findAll();
+    const roomsReturn = rooms.map((room) => {
+      return { name: room.name, floor: room.floor, capacity: room.capacity };
+    });
+    return roomsReturn;
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:name')
   async findRoom(@Param('name') name: string) {
-    return this.roomsService.findRoom(name);
+    const room = await this.roomsService.findRoom(name);
+    const roomReturn = {
+      name: room.name,
+      floor: room.floor,
+      capacity: room.capacity,
+    };
+    return roomReturn;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,17 +58,32 @@ export class RoomsController {
       body.capacity,
       body.floor,
     );
-    return room;
+    const roomReturn = {
+      name: room.name,
+      floor: room.floor,
+      capacity: room.capacity,
+    };
+    return roomReturn;
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('/update/:name')
-  async updateRoom(@Param('name') name: string, @Body() body: UpdateRoomDto, @Request() req) {
+  async updateRoom(
+    @Param('name') name: string,
+    @Body() body: UpdateRoomDto,
+    @Request() req,
+  ) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    return this.roomsService.updateRoom(name, body);
+    const room = await this.roomsService.updateRoom(name, body);
+    const roomReturn = {
+      name: room.name,
+      floor: room.floor,
+      capacity: room.capacity,
+    };
+    return roomReturn;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,6 +93,12 @@ export class RoomsController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    return this.roomsService.deleteRoom(name);
+    const room = await this.roomsService.deleteRoom(name);
+    const roomReturn = {
+      name: room.name,
+      floor: room.floor,
+      capacity: room.capacity,
+    };
+    return roomReturn;
   }
 }

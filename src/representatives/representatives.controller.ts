@@ -29,13 +29,22 @@ export class RepresentativesController {
   @UseGuards(JwtAuthGuard)
   @Get('/findAll')
   async findAll() {
-    return this.representativesService.findAll();
+    const reps = await this.representativesService.findAll();
+    const repReturn = reps.map((rep) => {
+      return { name: rep.name, company: rep.company.company };
+    });
+    return repReturn;
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:name')
   async findRepresentative(@Param('name') name: string) {
-    return this.representativesService.findOne(name);
+    const rep = await this.representativesService.findOne(name);
+    const repReturn = {
+      name: rep.name,
+      company: rep.company.company,
+    };
+    return repReturn;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -49,7 +58,15 @@ export class RepresentativesController {
       throw new UnauthorizedException('user is not a admin');
     }
 
-    return this.representativesService.create(body.name, body.company);
+    const rep = await this.representativesService.create(
+      body.name,
+      body.company,
+    );
+    const repReturn = {
+      name: rep.name,
+      company: rep.company.company,
+    };
+    return repReturn;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,7 +85,12 @@ export class RepresentativesController {
 
     representative.company = customer;
     representative.name = body.name;
-    return this.representativesService.update(name, representative);
+    const rep = await this.representativesService.update(name, representative);
+    const repReturn = {
+      name: rep.name,
+      company: rep.company.company,
+    };
+    return repReturn;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,6 +100,11 @@ export class RepresentativesController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException('user is not a admin');
     }
-    return this.representativesService.delete(name);
+    const rep = await this.representativesService.delete(name);
+    const repReturn = {
+      name: rep.name,
+      company: rep.company.company,
+    };
+    return repReturn;
   }
 }
