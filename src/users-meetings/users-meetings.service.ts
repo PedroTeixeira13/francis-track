@@ -13,17 +13,19 @@ export class UsersMeetingsService {
   ) {}
 
   async createMeetingUser(users: string[], newMeeting: Meeting) {
-    const newUsersMeetings = this.repo.create();
-    let foundedUsers: any[] = newUsersMeetings.users;
-
     for (const username of users) {
-      const foundUser = await this.usersService.findOne(username);
-      foundedUsers = [foundedUsers, foundUser];
+      const newUsersMeetings = this.repo.create();
+      newUsersMeetings.user = await this.usersService.findOne(username);
+      newUsersMeetings.meeting = newMeeting;
+      await this.repo.save(newUsersMeetings);
     }
-    newUsersMeetings.users = foundedUsers;
+  }
 
-    newUsersMeetings.meetings = [newMeeting];
-
-    return this.repo.save(newUsersMeetings);
+  async findUserMeeting(id: string) {
+    const userMeeting = await this.repo.findOne({
+      where: { id },
+      relations: { user: true, meeting: true },
+    });
+    return userMeeting.user.id
   }
 }

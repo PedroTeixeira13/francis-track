@@ -7,7 +7,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -20,8 +22,8 @@ export class Meeting {
   @ManyToOne(() => Room, (room) => room.id)
   room: Room;
 
-  @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
-  users: UsersMeetings;
+  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.meeting)
+  participants: UsersMeetings[];
 
   @ManyToOne(() => Customer, (customer) => customer.company)
   customer: Customer;

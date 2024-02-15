@@ -29,8 +29,8 @@ export class User {
   @Column()
   role: string;
 
-  @ManyToOne(() => UsersMeetings, (usersMeetings) => usersMeetings.id)
-  meetings: UsersMeetings;
+  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.user)
+  userMeetings: UsersMeetings[];
 
   @OneToMany(() => Meeting, (meetings) => meetings.subject)
   hasApplied: Meeting[];

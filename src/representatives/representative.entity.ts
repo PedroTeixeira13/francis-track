@@ -17,7 +17,7 @@ export class Representative {
   @Column()
   name: string;
 
-  @ManyToOne(() => Customer, (customers) => customers.company)
+  @ManyToOne(() => Customer, (customers) => customers.representatives)
   company: Customer;
 
   @Column({ default: true })

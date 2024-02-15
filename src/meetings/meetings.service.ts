@@ -7,6 +7,7 @@ import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
+import { differenceInMinutes, format } from 'date-fns';
 const { parseJSON } = require('date-fns');
 
 @Injectable()
@@ -21,21 +22,66 @@ export class MeetingsService {
 
   async findAll() {
     const meetings = await this.repo.find({
-      relations: { applicant: true, customer: true, room: true },
+      relations: {
+        applicant: true,
+        customer: { representatives: true },
+        room: true,
+        participants: { user: true },
+      },
     });
-    return meetings.filter((meeting) => meeting.active);
+    return meetings
+      .filter((meeting) => meeting.active)
+      .map((m) => {
+        return {
+          subject: m.subject,
+          room: m.room.name,
+          startTime: format(m.startTime, 'EEEE, dd MMMM yyyy'),
+          endTime: format(m.endTime, 'EEEE, dd MMMM yyyy'),
+          meetingDuration:
+            differenceInMinutes(m.endTime, m.startTime) + ' minutes',
+          customer: m.customer.company,
+          representatives: m.customer.representatives.map((rep) => rep.name),
+          users: m.participants.map((userMeeting) => userMeeting.user.username),
+          applicant: m.applicant.username,
+        };
+      });
   }
 
   async findOne(subject: string) {
-    const meeting = await this.repo.findOne({ where: { subject }, relations: { applicant: true, customer: true, room: true } });
+    const meeting = await this.repo.findOne({
+      where: { subject },
+      relations: {
+        applicant: {
+          userMeetings: {
+            user: true,
+          },
+        },
+        customer: { representatives: true },
+        room: true,
+        participants: { user: true },
+      },
+    });
     if (!meeting) {
       throw new NotFoundException('meeting not found');
     }
-    return meeting;
+    return {
+      subject: meeting.subject,
+      room: meeting.room.name,
+      startTime: format(meeting.startTime, 'EEEE, dd MMMM yyyy'),
+      endTime: format(meeting.endTime, 'EEEE, dd MMMM yyyy'),
+      meetingDuration:
+        differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
+      customer: meeting.customer.company,
+      representatives: meeting.customer.representatives.map((rep) => rep.name),
+      users: meeting.participants.map(
+        (userMeeting) => userMeeting.user.username,
+      ),
+      applicant: meeting.applicant.username,
+    };
   }
 
   async create(body: CreateMeetingDto, applicantId: string) {
-    const newMeeting = await this.repo.create();
+    const newMeeting = this.repo.create();
 
     const { roomName, users, customer, subject, startTime, endTime } = body;
 
@@ -43,10 +89,6 @@ export class MeetingsService {
     newMeeting.applicant = await this.usersService.findById(applicantId);
     newMeeting.room = await this.roomsService.findRoom(roomName);
     newMeeting.customer = await this.customersService.findCustomer(customer);
-    newMeeting.users = await this.usersMeetingsService.createMeetingUser(
-      users,
-      newMeeting,
-    );
 
     //TODO: lógica de impedir criação de reuniões simultaneas em uma sala
     const utcStartTime = parseJSON(startTime);
@@ -55,21 +97,15 @@ export class MeetingsService {
     const utcEndTime = parseJSON(endTime);
     newMeeting.endTime = utcEndTime;
 
-    delete newMeeting.users.meetings;
-    return this.repo.save(newMeeting);
+    const createdMeeting = await this.repo.save(newMeeting);
+
+    await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
+
+    return createdMeeting;
   }
 
-  async update(subject: string, attrs: Partial<Meeting>) {
-    const meeting = await this.findOne(subject);
-    if (!meeting) {
-      throw new NotFoundException('meeting not found');
-    }
-    Object.assign(meeting, attrs);
-    return this.repo.save(meeting);
-  }
-
-  async delete(subject: string) {
-    const meeting = await this.findOne(subject);
+  async delete(id: string) {
+    const meeting = await this.repo.findOne({ where: { id } });
     if (!meeting) {
       throw new NotFoundException('meeting not found');
     }

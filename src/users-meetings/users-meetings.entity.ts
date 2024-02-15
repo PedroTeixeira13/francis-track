@@ -1,15 +1,23 @@
 import { Meeting } from 'src/meetings/meeting.entity';
 import { User } from 'src/users/user.entity';
-import { Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn
+} from 'typeorm';
 
 @Entity()
 export class UsersMeetings {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => User, (users) => users.name)
-  users: User[];
+  @ManyToOne(() => User, (user) => user.userMeetings)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-  @OneToMany(() => Meeting, (meetings) => meetings.subject)
-  meetings: Meeting[];
+  @ManyToOne(() => Meeting, (meeting) => meeting.participants)
+  @JoinColumn({ name: 'meeting_id' })
+  meeting: Meeting;
 }

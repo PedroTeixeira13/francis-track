@@ -18,7 +18,7 @@ export class Customer {
   @Column()
   company: string;
 
-  @OneToMany(() => Representative, (representatives) => representatives.name)
+  @OneToMany(() => Representative, (representatives) => representatives.company)
   representatives: Representative[];
 
   @OneToMany(() => Meeting, (meetings) => meetings.subject)
