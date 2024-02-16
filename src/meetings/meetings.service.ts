@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomersService } from 'src/customers/customers.service';
 import { RoomsService } from 'src/rooms/rooms.service';
@@ -7,7 +12,7 @@ import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
-import { differenceInMinutes, format } from 'date-fns';
+import { areIntervalsOverlapping, differenceInMinutes, format } from 'date-fns';
 const { parseJSON } = require('date-fns');
 
 @Injectable()
@@ -90,15 +95,33 @@ export class MeetingsService {
     newMeeting.room = await this.roomsService.findRoom(roomName);
     newMeeting.customer = await this.customersService.findCustomer(customer);
 
-    //TODO: lógica de impedir criação de reuniões simultaneas em uma sala
+    if (endTime <= startTime) {
+      throw new BadRequestException('impossible to schedule this meeting time');
+    }
     const utcStartTime = parseJSON(startTime);
     newMeeting.startTime = utcStartTime;
 
     const utcEndTime = parseJSON(endTime);
     newMeeting.endTime = utcEndTime;
 
+    const sameRoomMeetings = await this.repo.find({
+      where: { room: { name: roomName } },
+    });
+
+    const isOverlapping = sameRoomMeetings.filter((meeting) => {
+      return (
+        meeting.startTime < newMeeting.endTime &&
+        newMeeting.startTime < meeting.endTime
+      );
+    });
+
+    if (isOverlapping.length > 0) {
+      throw new ConflictException('impossible to schedule this meeting time');
+    }
+
     const createdMeeting = await this.repo.save(newMeeting);
 
+    //TODO: lógica para apagar tudo quando nao der certo isso aqui (provavelmente Promise all)
     await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
 
     return createdMeeting;
