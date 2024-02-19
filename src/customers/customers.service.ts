@@ -17,7 +17,7 @@ export class CustomersService {
   }
 
   async findCustomer(company: string) {
-    const customer = await this.repo.findOne({ where: { company } });
+    const customer = await this.repo.findOne({ where: { company }, relations: {representatives: true} });
 
     if (!customer) {
       throw new NotFoundException('customer not found');

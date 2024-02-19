@@ -37,15 +37,19 @@ export class MeetingsController {
 
   @Post('/create')
   async create(@Body() body: CreateMeetingDto, @Request() req) {
-    //TODO: permitir apenas facilities criar reunioes
+    // if (req.user.role !== 'admin' && req.user.role !== 'facilities') {
+    //   console.log(req.user.role);
+    //   throw new UnauthorizedException(
+    //     'user does not have permission to do this',
+    //   );
+    // }
     const meeting = await this.meetingsService.create(body, req.user.id);
-    return await this.meetingsService.findOne(meeting.subject);
+    return await this.meetingsService.findById(meeting.id);
   }
 
   @Delete('/delete/:id')
   async deleteMeeting(@Param('id') id: string, @Request() req) {
-    const user = await this.usersService.findById(req.user.id);
-    if (user.role !== 'admin' && user.role !== 'facilities') {
+    if (req.user.role !== 'admin' && req.user.role !== 'facilities') {
       throw new UnauthorizedException(
         'user does not have permission to do this',
       );

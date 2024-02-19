@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomersService } from 'src/customers/customers.service';
@@ -85,6 +86,39 @@ export class MeetingsService {
     };
   }
 
+  async findById(id: string) {
+    const meeting = await this.repo.findOne({
+      where: { id },
+      relations: {
+        applicant: {
+          userMeetings: {
+            user: true,
+          },
+        },
+        customer: { representatives: true },
+        room: true,
+        participants: { user: true },
+      },
+    });
+    if (!meeting) {
+      throw new NotFoundException('meeting not found');
+    }
+    return {
+      subject: meeting.subject,
+      room: meeting.room.name,
+      startTime: format(meeting.startTime, 'EEEE, dd MMMM yyyy'),
+      endTime: format(meeting.endTime, 'EEEE, dd MMMM yyyy'),
+      meetingDuration:
+        differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
+      customer: meeting.customer.company,
+      representatives: meeting.customer.representatives.map((rep) => rep.name),
+      users: meeting.participants.map(
+        (userMeeting) => userMeeting.user.username,
+      ),
+      applicant: meeting.applicant.username,
+    };
+  }
+
   async create(body: CreateMeetingDto, applicantId: string) {
     const newMeeting = this.repo.create();
 
@@ -94,6 +128,12 @@ export class MeetingsService {
     newMeeting.applicant = await this.usersService.findById(applicantId);
     newMeeting.room = await this.roomsService.findRoom(roomName);
     newMeeting.customer = await this.customersService.findCustomer(customer);
+
+    const repCount = newMeeting.customer.representatives
+
+    if (repCount.length + users.length > newMeeting.room.capacity) {
+      throw new UnprocessableEntityException('number of participants greater than the room capacity')
+    }
 
     if (endTime <= startTime) {
       throw new BadRequestException('impossible to schedule this meeting time');
