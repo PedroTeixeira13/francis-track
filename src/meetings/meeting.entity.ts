@@ -22,7 +22,9 @@ export class Meeting {
   @ManyToOne(() => Room, (room) => room.id)
   room: Room;
 
-  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.meeting)
+  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.meeting, {
+    onDelete: 'CASCADE',
+  })
   participants: UsersMeetings[];
 
   @ManyToOne(() => Customer, (customer) => customer.company)

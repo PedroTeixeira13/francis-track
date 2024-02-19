@@ -159,10 +159,14 @@ export class MeetingsService {
       throw new ConflictException('impossible to schedule this meeting time');
     }
 
-    const createdMeeting = await this.repo.save(newMeeting);
-
-    //TODO: lógica para apagar tudo quando nao der certo isso aqui (provavelmente Promise all)
-    await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
+    var createdMeeting = new Meeting()
+    try   {
+      createdMeeting = await this.repo.save(newMeeting);
+      await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
+    } catch (error) {
+      await this.repo.delete(createdMeeting.id)
+      throw new NotFoundException('one or more users not found')
+    }
 
     return createdMeeting;
   }
