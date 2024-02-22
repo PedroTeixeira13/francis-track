@@ -12,12 +12,24 @@ export class CustomersService {
   constructor(@InjectRepository(Customer) private repo: Repository<Customer>) {}
 
   async findAll() {
-    const customers = await this.repo.find();
-    return customers.filter((customer) => customer.active);
+    const customers = await this.repo.find({
+      relations: { representatives: true },
+    });
+    return customers
+      .filter((customer) => customer.active)
+      .map((cust) => {
+        return {
+          company: cust.company,
+          representatives: cust.representatives.map((rep) => rep.name),
+        };
+      });
   }
 
   async findCustomer(company: string) {
-    const customer = await this.repo.findOne({ where: { company }, relations: {representatives: true} });
+    const customer = await this.repo.findOne({
+      where: { company },
+      relations: { representatives: true },
+    });
 
     if (!customer) {
       throw new NotFoundException('customer not found');

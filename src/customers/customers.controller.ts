@@ -39,7 +39,7 @@ export class CustomersController {
     const cust = await this.customersService.findCustomer(company);
     const custReturn = {
       company: cust.company,
-      representatives: [cust.representatives],
+      representatives: [cust.representatives.map((rep) => rep.name)],
     };
     return custReturn;
   }

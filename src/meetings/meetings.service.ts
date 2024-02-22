@@ -41,8 +41,8 @@ export class MeetingsService {
         return {
           subject: m.subject,
           room: m.room.name,
-          startTime: format(m.startTime, 'EEEE, dd MMMM yyyy'),
-          endTime: format(m.endTime, 'EEEE, dd MMMM yyyy'),
+          startTime: format(m.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
+          endTime: format(m.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
           meetingDuration:
             differenceInMinutes(m.endTime, m.startTime) + ' minutes',
           customer: m.customer.company,
@@ -73,8 +73,8 @@ export class MeetingsService {
     return {
       subject: meeting.subject,
       room: meeting.room.name,
-      startTime: format(meeting.startTime, 'EEEE, dd MMMM yyyy'),
-      endTime: format(meeting.endTime, 'EEEE, dd MMMM yyyy'),
+      startTime: format(meeting.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
+      endTime: format(meeting.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
       meetingDuration:
         differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
       customer: meeting.customer.company,
@@ -106,8 +106,8 @@ export class MeetingsService {
     return {
       subject: meeting.subject,
       room: meeting.room.name,
-      startTime: format(meeting.startTime, 'EEEE, dd MMMM yyyy'),
-      endTime: format(meeting.endTime, 'EEEE, dd MMMM yyyy'),
+      startTime: format(meeting.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
+      endTime: format(meeting.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
       meetingDuration:
         differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
       customer: meeting.customer.company,
@@ -131,6 +131,8 @@ export class MeetingsService {
 
     const repCount = newMeeting.customer.representatives
 
+    const now = new Date()
+
     if (repCount.length + users.length > newMeeting.room.capacity) {
       throw new UnprocessableEntityException('number of participants greater than the room capacity')
     }
@@ -138,7 +140,11 @@ export class MeetingsService {
     if (endTime <= startTime) {
       throw new BadRequestException('impossible to schedule this meeting time');
     }
+
     const utcStartTime = parseJSON(startTime);
+    if (utcStartTime < now) {
+      throw new BadRequestException("you can't create a meeting in the past")
+    }
     newMeeting.startTime = utcStartTime;
 
     const utcEndTime = parseJSON(endTime);
