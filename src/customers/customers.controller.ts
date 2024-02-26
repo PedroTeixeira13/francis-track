@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,12 +8,13 @@ import {
   Post,
   Request,
   UnauthorizedException,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
-import { CustomersService } from './customers.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateCustomerDto } from './dtos/create-customer.dto';
 import { UsersService } from 'src/users/users.service';
+import { CustomersService } from './customers.service';
+import { CreateCustomerDto } from './dtos/create-customer.dto';
+import { CustomerResponseDto } from './dtos/customer-response.dto';
 import { UpdateCustomerDto } from './dtos/update-customer.dto';
 
 @Controller('customers')
@@ -28,20 +28,13 @@ export class CustomersController {
   @Get('/findAll')
   async findAll() {
     const customers = await this.customersService.findAll();
-    const customersReturn = customers.map((cust) => {
-      return { company: cust.company, representatives: [cust.representatives] };
-    });
-    return customersReturn;
+    return customers.map((cust) => new CustomerResponseDto(cust));
   }
 
   @Get('/:company')
   async findCustomer(@Param('company') company: string) {
     const cust = await this.customersService.findCustomer(company);
-    const custReturn = {
-      company: cust.company,
-      representatives: [cust.representatives.map((rep) => rep.name)],
-    };
-    return custReturn;
+    return new CustomerResponseDto(cust);
   }
 
   @Post('/create')
@@ -51,12 +44,7 @@ export class CustomersController {
       throw new UnauthorizedException('user is not a admin');
     }
     const cust = await this.customersService.createCustomer(body.company);
-
-    const custReturn = {
-      company: cust.company,
-      representatives: [cust.representatives],
-    };
-    return custReturn;
+    return new CustomerResponseDto(cust);
   }
 
   @Patch('/update/:company')
@@ -70,11 +58,7 @@ export class CustomersController {
       throw new UnauthorizedException('user is not a admin');
     }
     const cust = await this.customersService.updateCustomer(company, body);
-    const custReturn = {
-      company: cust.company,
-      representatives: [cust.representatives],
-    };
-    return custReturn;
+    return new CustomerResponseDto(cust);
   }
 
   @Delete('/delete/:company')
@@ -84,10 +68,6 @@ export class CustomersController {
       throw new UnauthorizedException('user is not a admin');
     }
     const cust = await this.customersService.deleteRoom(company);
-    const custReturn = {
-      company: cust.company,
-      representatives: [cust.representatives],
-    };
-    return custReturn;
+    return new CustomerResponseDto(cust);
   }
 }

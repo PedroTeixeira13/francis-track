@@ -6,6 +6,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { differenceInMinutes, format } from 'date-fns';
 import { CustomersService } from 'src/customers/customers.service';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
@@ -13,7 +14,7 @@ import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
-import { areIntervalsOverlapping, differenceInMinutes, format } from 'date-fns';
+import { MeetingResponseDto } from './dtos/meeting-response.dto';
 const { parseJSON } = require('date-fns');
 
 @Injectable()
@@ -35,66 +36,14 @@ export class MeetingsService {
         participants: { user: true },
       },
     });
-    return meetings
-      .filter((meeting) => meeting.active)
-      .map((m) => {
-        return {
-          subject: m.subject,
-          room: m.room.name,
-          startTime: format(m.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-          endTime: format(m.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-          meetingDuration:
-            differenceInMinutes(m.endTime, m.startTime) + ' minutes',
-          customer: m.customer.company,
-          representatives: m.customer.representatives.map((rep) => rep.name),
-          users: m.participants.map((userMeeting) => userMeeting.user.username),
-          applicant: m.applicant.username,
-        };
-      });
-  }
-
-  async findOne(subject: string) {
-    const meeting = await this.repo.findOne({
-      where: { subject },
-      relations: {
-        applicant: {
-          userMeetings: {
-            user: true,
-          },
-        },
-        customer: { representatives: true },
-        room: true,
-        participants: { user: true },
-      },
-    });
-    if (!meeting) {
-      throw new NotFoundException('meeting not found');
-    }
-    return {
-      subject: meeting.subject,
-      room: meeting.room.name,
-      startTime: format(meeting.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-      endTime: format(meeting.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-      meetingDuration:
-        differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
-      customer: meeting.customer.company,
-      representatives: meeting.customer.representatives.map((rep) => rep.name),
-      users: meeting.participants.map(
-        (userMeeting) => userMeeting.user.username,
-      ),
-      applicant: meeting.applicant.username,
-    };
+    return meetings;
   }
 
   async findById(id: string) {
     const meeting = await this.repo.findOne({
       where: { id },
       relations: {
-        applicant: {
-          userMeetings: {
-            user: true,
-          },
-        },
+        applicant: true,
         customer: { representatives: true },
         room: true,
         participants: { user: true },
@@ -103,20 +52,7 @@ export class MeetingsService {
     if (!meeting) {
       throw new NotFoundException('meeting not found');
     }
-    return {
-      subject: meeting.subject,
-      room: meeting.room.name,
-      startTime: format(meeting.startTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-      endTime: format(meeting.endTime, 'HH:mm - EEEE, dd MMMM yyyy'),
-      meetingDuration:
-        differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes',
-      customer: meeting.customer.company,
-      representatives: meeting.customer.representatives.map((rep) => rep.name),
-      users: meeting.participants.map(
-        (userMeeting) => userMeeting.user.username,
-      ),
-      applicant: meeting.applicant.username,
-    };
+    return new MeetingResponseDto(meeting);
   }
 
   async create(body: CreateMeetingDto, applicantId: string) {
@@ -129,12 +65,14 @@ export class MeetingsService {
     newMeeting.room = await this.roomsService.findRoom(roomName);
     newMeeting.customer = await this.customersService.findCustomer(customer);
 
-    const repCount = newMeeting.customer.representatives
+    const repCount = newMeeting.customer.representatives;
 
-    const now = new Date()
+    const now = new Date();
 
     if (repCount.length + users.length > newMeeting.room.capacity) {
-      throw new UnprocessableEntityException('number of participants greater than the room capacity')
+      throw new UnprocessableEntityException(
+        'number of participants greater than the room capacity',
+      );
     }
 
     if (endTime <= startTime) {
@@ -143,7 +81,7 @@ export class MeetingsService {
 
     const utcStartTime = parseJSON(startTime);
     if (utcStartTime < now) {
-      throw new BadRequestException("you can't create a meeting in the past")
+      throw new BadRequestException("you can't create a meeting in the past");
     }
     newMeeting.startTime = utcStartTime;
 
@@ -165,13 +103,13 @@ export class MeetingsService {
       throw new ConflictException('impossible to schedule this meeting time');
     }
 
-    var createdMeeting = new Meeting()
-    try   {
+    var createdMeeting = new Meeting();
+    try {
       createdMeeting = await this.repo.save(newMeeting);
       await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
     } catch (error) {
-      await this.repo.delete(createdMeeting.id)
-      throw new NotFoundException('one or more users not found')
+      await this.repo.delete(createdMeeting.id);
+      throw new NotFoundException('one or more users not found');
     }
 
     return createdMeeting;

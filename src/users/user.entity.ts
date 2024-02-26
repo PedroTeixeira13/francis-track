@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { Meeting } from 'src/meetings/meeting.entity';
 import { Token } from 'src/tokens/token.entity';
 import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
@@ -11,6 +12,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserResponseDto } from './dtos/user-response.dto';
 
 @Entity()
 export class User {

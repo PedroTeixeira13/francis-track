@@ -15,8 +15,8 @@ import { LocalAuthGuard } from 'src/auth/local-auth.guard';
 import { ChangeRoleDto } from './dtos/change-role.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { UsersService } from './users.service';
 import { UserResponseDto } from './dtos/user-response.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -32,43 +32,28 @@ export class UsersController {
   }
 
   @Post('/create')
-  async createUser(@Body() body: CreateUserDto) {
+  async createUser(@Body() body: CreateUserDto): Promise<UserResponseDto> {
     const user = await this.authService.createUser(
       body.username,
       body.password,
       body.name,
       body.role,
     );
-    const userReturn = {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-    };
-
-    return userReturn;
+    return new UserResponseDto(user);
   }
 
   @Get('/findAll')
   async findAll() {
     const users = await this.usersService.findAll();
-    const usersReturn = users.map((user) => {
-      return { name: user.name, username: user.username, role: user.role };
-    });
+    const usersReturn = users.map((user) => new UserResponseDto(user));
     return usersReturn;
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:username')
-  async findUserById(@Param('username') username: string) {
+  async findUser(@Param('username') username: string) {
     const user = await this.usersService.findOne(username);
-
-    const userReturn = {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-    };
-
-    return userReturn;
+    return new UserResponseDto(user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,13 +63,7 @@ export class UsersController {
     @Body() body: UpdateUserDto,
   ) {
     const user = await this.usersService.update(username, body);
-    const userReturn = {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-    };
-
-    return userReturn;
+    return new UserResponseDto(user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -94,25 +73,13 @@ export class UsersController {
     @Body() role: ChangeRoleDto,
   ) {
     const user = await this.usersService.changeRole(username, role.role);
-    const userReturn = {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-    };
-
-    return userReturn;
+    return new UserResponseDto(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('delete/:username')
   async delete(@Param('username') username: string) {
     const user = await this.usersService.delete(username);
-    const userReturn = {
-      name: user.name,
-      username: user.username,
-      role: user.role,
-    };
-
-    return userReturn;
+    return new UserResponseDto(user);
   }
 }

@@ -30,9 +30,9 @@ export class MeetingsController {
     return this.meetingsService.findAll();
   }
 
-  @Get('/:subject')
-  findMeeting(@Param('subject') subject: string) {
-    return this.meetingsService.findOne(subject);
+  @Get('/:id')
+  findMeeting(@Param('id') id: string) {
+    return this.meetingsService.findById(id);
   }
 
   @Post('/create')

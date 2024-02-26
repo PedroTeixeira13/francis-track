@@ -16,6 +16,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateRoomDto } from './dtos/create-room.dto';
 import { UsersService } from 'src/users/users.service';
 import { UpdateRoomDto } from './dtos/update-room.dto';
+import { RoomResponseDto } from './dtos/room-response.dto';
 
 @Controller('rooms')
 export class RoomsController {
@@ -28,9 +29,7 @@ export class RoomsController {
   @Get('/findAll')
   async findAll() {
     const rooms = await this.roomsService.findAll();
-    const roomsReturn = rooms.map((room) => {
-      return { name: room.name, floor: room.floor, capacity: room.capacity };
-    });
+    const roomsReturn = rooms.map((room) => new RoomResponseDto(room));
     return roomsReturn;
   }
 
@@ -38,12 +37,7 @@ export class RoomsController {
   @Get('/:name')
   async findRoom(@Param('name') name: string) {
     const room = await this.roomsService.findRoom(name);
-    const roomReturn = {
-      name: room.name,
-      floor: room.floor,
-      capacity: room.capacity,
-    };
-    return roomReturn;
+    return new RoomResponseDto(room);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -58,12 +52,7 @@ export class RoomsController {
       body.capacity,
       body.floor,
     );
-    const roomReturn = {
-      name: room.name,
-      floor: room.floor,
-      capacity: room.capacity,
-    };
-    return roomReturn;
+    return new RoomResponseDto(room);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,12 +67,7 @@ export class RoomsController {
       throw new UnauthorizedException('user is not a admin');
     }
     const room = await this.roomsService.updateRoom(name, body);
-    const roomReturn = {
-      name: room.name,
-      floor: room.floor,
-      capacity: room.capacity,
-    };
-    return roomReturn;
+    return new RoomResponseDto(room);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -94,11 +78,6 @@ export class RoomsController {
       throw new UnauthorizedException('user is not a admin');
     }
     const room = await this.roomsService.deleteRoom(name);
-    const roomReturn = {
-      name: room.name,
-      floor: room.floor,
-      capacity: room.capacity,
-    };
-    return roomReturn;
+    return new RoomResponseDto(room);
   }
 }

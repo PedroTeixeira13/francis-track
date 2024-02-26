@@ -10,13 +10,14 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { RepresentativesService } from './representatives.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateRepresentativeDto } from './dtos/create-representative.dto';
+import { CustomersService } from 'src/customers/customers.service';
 import { UsersService } from 'src/users/users.service';
+import { CreateRepresentativeDto } from './dtos/create-representative.dto';
+import { RepresentativeResponseDto } from './dtos/representative-response.dto';
 import { UpdateRepresentativeDto } from './dtos/update-representative.dto';
 import { Representative } from './representative.entity';
-import { CustomersService } from 'src/customers/customers.service';
+import { RepresentativesService } from './representatives.service';
 
 @Controller('representatives')
 export class RepresentativesController {
@@ -30,21 +31,14 @@ export class RepresentativesController {
   @Get('/findAll')
   async findAll() {
     const reps = await this.representativesService.findAll();
-    const repReturn = reps.map((rep) => {
-      return { name: rep.name, company: rep.company.company };
-    });
-    return repReturn;
+    return reps.map((rep) => new RepresentativeResponseDto(rep));
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:name')
   async findRepresentative(@Param('name') name: string) {
     const rep = await this.representativesService.findOne(name);
-    const repReturn = {
-      name: rep.name,
-      company: rep.company.company,
-    };
-    return repReturn;
+    return new RepresentativeResponseDto(rep);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,11 +56,7 @@ export class RepresentativesController {
       body.name,
       body.company,
     );
-    const repReturn = {
-      name: rep.name,
-      company: rep.company.company,
-    };
-    return repReturn;
+    return new RepresentativeResponseDto(rep);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -86,11 +76,7 @@ export class RepresentativesController {
     representative.company = customer;
     representative.name = body.name;
     const rep = await this.representativesService.update(name, representative);
-    const repReturn = {
-      name: rep.name,
-      company: rep.company.company,
-    };
-    return repReturn;
+    return new RepresentativeResponseDto(rep);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -101,10 +87,6 @@ export class RepresentativesController {
       throw new UnauthorizedException('user is not a admin');
     }
     const rep = await this.representativesService.delete(name);
-    const repReturn = {
-      name: rep.name,
-      company: rep.company.company,
-    };
-    return repReturn;
+    return new RepresentativeResponseDto(rep);
   }
 }

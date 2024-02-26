@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Customer } from 'src/customers/customer.entity';
 import { Room } from 'src/rooms/room.entity';
 import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
@@ -16,6 +17,7 @@ import {
 
 @Entity()
 export class Meeting {
+  @Exclude()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -42,6 +44,7 @@ export class Meeting {
   @ManyToOne(() => User, (applicant) => applicant.name)
   applicant: User;
 
+  @Exclude()
   @Column({ default: true })
   active: boolean;
 

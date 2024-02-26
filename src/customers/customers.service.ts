@@ -15,14 +15,7 @@ export class CustomersService {
     const customers = await this.repo.find({
       relations: { representatives: true },
     });
-    return customers
-      .filter((customer) => customer.active)
-      .map((cust) => {
-        return {
-          company: cust.company,
-          representatives: cust.representatives.map((rep) => rep.name),
-        };
-      });
+    return customers.filter((customer) => customer.active);
   }
 
   async findCustomer(company: string) {
