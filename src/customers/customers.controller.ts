@@ -8,9 +8,10 @@ import {
   Post,
   Request,
   UnauthorizedException,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
 import { UsersService } from 'src/users/users.service';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
@@ -41,7 +42,7 @@ export class CustomersController {
   async createCustomer(@Body() body: CreateCustomerDto, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const cust = await this.customersService.createCustomer(body.company);
     return new CustomerResponseDto(cust);
@@ -55,7 +56,7 @@ export class CustomersController {
   ) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const cust = await this.customersService.updateCustomer(company, body);
     return new CustomerResponseDto(cust);
@@ -65,7 +66,7 @@ export class CustomersController {
   async deleteCustomer(@Param('company') company: string, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const cust = await this.customersService.deleteRoom(company);
     return new CustomerResponseDto(cust);

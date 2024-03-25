@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Representative } from './representative.entity';
 import { Repository } from 'typeorm';
 import { CustomersService } from 'src/customers/customers.service';
+import { RepresentativesExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Injectable()
 export class RepresentativesService {
@@ -28,7 +29,7 @@ export class RepresentativesService {
       relations: { company: true },
     });
     if (!representative || !representative.active) {
-      throw new NotFoundException('representative not found');
+      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
     }
     return representative;
   }
@@ -40,7 +41,9 @@ export class RepresentativesService {
   async create(name: string, company: string) {
     const representatives = await this.checkOne(name);
     if (representatives !== null) {
-      throw new BadRequestException('username in use');
+      throw new BadRequestException(
+        RepresentativesExceptionMessage.USERNAME_IN_USE,
+      );
     }
 
     const realCompany = await this.customersService.findCustomer(company);
@@ -55,7 +58,7 @@ export class RepresentativesService {
   async update(name: string, attrs: Partial<Representative>) {
     const representative = await this.repo.findOne({ where: { name } });
     if (!representative) {
-      throw new NotFoundException('representative not found');
+      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
     }
     Object.assign(representative, attrs);
     return this.repo.save(representative);
@@ -64,7 +67,7 @@ export class RepresentativesService {
   async delete(name: string) {
     const representative = await this.repo.findOne({ where: { name } });
     if (!representative) {
-      throw new NotFoundException('representative not found');
+      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
     }
     representative.active = false;
     representative.deletedAt = new Date();

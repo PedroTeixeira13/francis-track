@@ -6,7 +6,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { differenceInMinutes, format } from 'date-fns';
 import { CustomersService } from 'src/customers/customers.service';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
@@ -15,6 +14,7 @@ import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
 import { Meeting } from './meeting.entity';
 import { MeetingResponseDto } from './dtos/meeting-response.dto';
+import { MeetingsExceptionMessage } from 'src/common/enums/errorMessages.enum';
 const { parseJSON } = require('date-fns');
 
 @Injectable()
@@ -50,7 +50,7 @@ export class MeetingsService {
       },
     });
     if (!meeting) {
-      throw new NotFoundException('meeting not found');
+      throw new NotFoundException(MeetingsExceptionMessage.NOT_FOUND);
     }
     return new MeetingResponseDto(meeting);
   }
@@ -71,17 +71,17 @@ export class MeetingsService {
 
     if (repCount.length + users.length > newMeeting.room.capacity) {
       throw new UnprocessableEntityException(
-        'number of participants greater than the room capacity',
+        MeetingsExceptionMessage.OUT_OF_CAPACITY,
       );
     }
 
     if (endTime <= startTime) {
-      throw new BadRequestException('impossible to schedule this meeting time');
+      throw new BadRequestException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
     }
 
     const utcStartTime = parseJSON(startTime);
     if (utcStartTime < now) {
-      throw new BadRequestException("you can't create a meeting in the past");
+      throw new BadRequestException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
     }
     newMeeting.startTime = utcStartTime;
 
@@ -100,16 +100,16 @@ export class MeetingsService {
     });
 
     if (isOverlapping.length > 0) {
-      throw new ConflictException('impossible to schedule this meeting time');
+      throw new ConflictException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
     }
 
-    var createdMeeting = new Meeting();
+    let createdMeeting = new Meeting();
     try {
       createdMeeting = await this.repo.save(newMeeting);
       await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
     } catch (error) {
       await this.repo.delete(createdMeeting.id);
-      throw new NotFoundException('one or more users not found');
+      throw new NotFoundException(MeetingsExceptionMessage.USERS_NOT_FOUND);
     }
 
     return createdMeeting;
@@ -118,7 +118,7 @@ export class MeetingsService {
   async delete(id: string) {
     const meeting = await this.repo.findOne({ where: { id } });
     if (!meeting) {
-      throw new NotFoundException('meeting not found');
+      throw new NotFoundException(MeetingsExceptionMessage.NOT_FOUND);
     }
     meeting.deletedAt = new Date();
     meeting.active = false;

@@ -18,6 +18,7 @@ import { RepresentativeResponseDto } from './dtos/representative-response.dto';
 import { UpdateRepresentativeDto } from './dtos/update-representative.dto';
 import { Representative } from './representative.entity';
 import { RepresentativesService } from './representatives.service';
+import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Controller('representatives')
 export class RepresentativesController {
@@ -49,7 +50,7 @@ export class RepresentativesController {
   ) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
 
     const rep = await this.representativesService.create(
@@ -68,7 +69,7 @@ export class RepresentativesController {
   ) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const representative = new Representative();
     const customer = await this.customersService.findCustomer(body.company);
@@ -84,7 +85,7 @@ export class RepresentativesController {
   async deleteRepresentative(@Param('name') name: string, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const rep = await this.representativesService.delete(name);
     return new RepresentativeResponseDto(rep);

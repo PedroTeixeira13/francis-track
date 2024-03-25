@@ -17,6 +17,7 @@ import { CreateRoomDto } from './dtos/create-room.dto';
 import { UsersService } from 'src/users/users.service';
 import { UpdateRoomDto } from './dtos/update-room.dto';
 import { RoomResponseDto } from './dtos/room-response.dto';
+import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Controller('rooms')
 export class RoomsController {
@@ -45,7 +46,7 @@ export class RoomsController {
   async createRoom(@Body() body: CreateRoomDto, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const room = await this.roomsService.createRoom(
       body.name,
@@ -64,7 +65,7 @@ export class RoomsController {
   ) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const room = await this.roomsService.updateRoom(name, body);
     return new RoomResponseDto(room);
@@ -75,7 +76,7 @@ export class RoomsController {
   async deleteRoom(@Param('name') name: string, @Request() req) {
     const user = await this.usersService.findById(req.user.id);
     if (user.role !== 'admin') {
-      throw new UnauthorizedException('user is not a admin');
+      throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
     const room = await this.roomsService.deleteRoom(name);
     return new RoomResponseDto(room);

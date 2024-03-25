@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { UsersExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
   async findOne(username: string): Promise<User | undefined> {
     const user = await this.repo.findOne({ where: { username } });
     if (!user || !user.active) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
     }
     return user;
   }
@@ -33,7 +34,7 @@ export class UsersService {
   async findById(id: string): Promise<User | undefined> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user || !user.active) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
     }
     return user;
   }
@@ -41,7 +42,7 @@ export class UsersService {
   async update(username: string, attrs: Partial<User>) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
     }
     Object.assign(user, attrs);
     return this.repo.save(user);
@@ -50,7 +51,7 @@ export class UsersService {
   async changeRole(username: string, role: string) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
     }
     user.role = role;
     return this.repo.save(user);
@@ -59,7 +60,7 @@ export class UsersService {
   async delete(username: string) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
     }
     user.active = false;
     user.deletedAt = new Date();

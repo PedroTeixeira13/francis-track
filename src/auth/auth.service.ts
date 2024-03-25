@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
 import { TokensService } from 'src/tokens/tokens.service';
+import { User } from 'src/users/user.entity';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -27,11 +29,11 @@ export class AuthService {
     password: string,
     name: string,
     role: string,
-  ) {
+  ): Promise<User> {
     const users = await this.usersService.checkOne(username);
 
     if (users) {
-      throw new BadRequestException('username in use');
+      throw new BadRequestException(AuthExceptionMessage.USERNAME_IN_USE);
     }
 
     const user = this.usersService.create(username, password, name, role);

@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Customer } from './customer.entity';
 import { Repository } from 'typeorm';
+import { CustomerExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Injectable()
 export class CustomersService {
@@ -25,7 +26,7 @@ export class CustomersService {
     });
 
     if (!customer) {
-      throw new NotFoundException('customer not found');
+      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
     }
     return customer;
   }
@@ -33,7 +34,7 @@ export class CustomersService {
   async createCustomer(company: string) {
     const customers = await this.repo.findOne({ where: { company } });
     if (customers) {
-      throw new BadRequestException('customer name in use');
+      throw new BadRequestException(CustomerExceptionMessage.NAME_IN_USE);
     }
     const customer = this.repo.create({ company });
 
@@ -43,7 +44,7 @@ export class CustomersService {
   async updateCustomer(company: string, attrs: Partial<Customer>) {
     const customer = await this.repo.findOne({ where: { company } });
     if (!customer) {
-      throw new NotFoundException('customer not found');
+      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
     }
     Object.assign(customer, attrs);
     return this.repo.save(customer);
@@ -52,7 +53,7 @@ export class CustomersService {
   async deleteRoom(company: string) {
     const customer = await this.findCustomer(company);
     if (!customer) {
-      throw new NotFoundException('customer not found');
+      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
     }
     customer.deletedAt = new Date();
     customer.active = false;
