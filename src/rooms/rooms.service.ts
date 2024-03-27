@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './room.entity';
-import { RoomResponseDto } from './dtos/room-response.dto';
 import { RoomsExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Injectable()

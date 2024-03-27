@@ -1,21 +1,21 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { MeetingsExceptionMessage } from 'src/common/enums/errorMessages.enum';
 import { CustomersService } from 'src/customers/customers.service';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
 import { UsersService } from 'src/users/users.service';
+import checkDates from 'src/utils/checkDates';
+import checkOverlap from 'src/utils/checkOverlap';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
-import { Meeting } from './meeting.entity';
 import { MeetingResponseDto } from './dtos/meeting-response.dto';
-import { MeetingsExceptionMessage } from 'src/common/enums/errorMessages.enum';
-const { parseJSON } = require('date-fns');
+import { Meeting } from './meeting.entity';
 
 @Injectable()
 export class MeetingsService {
@@ -67,39 +67,21 @@ export class MeetingsService {
 
     const repCount = newMeeting.customer.representatives;
 
-    const now = new Date();
-
     if (repCount.length + users.length > newMeeting.room.capacity) {
       throw new UnprocessableEntityException(
         MeetingsExceptionMessage.OUT_OF_CAPACITY,
       );
     }
 
-    if (endTime <= startTime) {
-      throw new BadRequestException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
-    }
-
-    const utcStartTime = parseJSON(startTime);
-    if (utcStartTime < now) {
-      throw new BadRequestException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
-    }
-    newMeeting.startTime = utcStartTime;
-
-    const utcEndTime = parseJSON(endTime);
-    newMeeting.endTime = utcEndTime;
+    const dates = checkDates(startTime, endTime);
+    newMeeting.startTime = dates.startTime;
+    newMeeting.endTime = dates.endTime;
 
     const sameRoomMeetings = await this.repo.find({
       where: { room: { name: roomName } },
     });
 
-    const isOverlapping = sameRoomMeetings.filter((meeting) => {
-      return (
-        meeting.startTime < newMeeting.endTime &&
-        newMeeting.startTime < meeting.endTime
-      );
-    });
-
-    if (isOverlapping.length > 0) {
+    if (!checkOverlap(sameRoomMeetings, newMeeting)) {
       throw new ConflictException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
     }
 

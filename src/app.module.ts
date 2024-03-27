@@ -50,7 +50,7 @@ import { UsersModule } from './users/users.module';
     CustomersModule,
     AuthModule,
     UsersMeetingsModule,
-    TokensModule,
+    TokensModule
   ],
   controllers: [AppController, UsersController, RoomsController],
   providers: [
