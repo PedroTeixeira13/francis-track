@@ -1,6 +1,18 @@
+import { Transform } from 'class-transformer';
 import { Meeting } from 'src/meetings/meeting.entity';
-import { Role } from 'src/roles/role.entity';
-import { Column, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Token } from 'src/tokens/token.entity';
+import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserResponseDto } from './dtos/user-response.dto';
 
 @Entity()
 export class User {
@@ -11,17 +23,32 @@ export class User {
   name: string;
 
   @Column()
-  email: string;
+  username: string;
 
   @Column()
   password: string;
 
-  @ManyToOne(() => Role, (role) => role.name)
-  role: Role;
+  @Column()
+  role: string;
 
-  @ManyToMany(() => Meeting, (meetings) => meetings.subject)
-  meetings: Meeting[]
+  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.user)
+  userMeetings: UsersMeetings[];
 
-  @ManyToOne(() => Meeting, (meetings) => meetings.subject)
-  hasApplied: Meeting[]
+  @OneToMany(() => Meeting, (meetings) => meetings.subject)
+  hasApplied: Meeting[];
+
+  @OneToMany(() => Token, (tokens) => tokens.id)
+  tokens: Token[];
+
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

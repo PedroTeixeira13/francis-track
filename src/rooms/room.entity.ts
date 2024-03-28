@@ -1,5 +1,13 @@
 import { Meeting } from 'src/meetings/meeting.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Room {
@@ -15,6 +23,18 @@ export class Room {
   @Column()
   floor: number;
 
-  @OneToMany(() => Meeting, (meetings) => meetings.subject)
+  @OneToMany(() => Meeting, (meetings) => meetings.id)
   meetings: Meeting[];
+
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

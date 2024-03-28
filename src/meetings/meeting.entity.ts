@@ -1,28 +1,36 @@
-import { MeetingsRepresentatives } from 'src/meetings-representatives/meetings-representatives.entity';
+import { Exclude } from 'class-transformer';
+import { Customer } from 'src/customers/customer.entity';
 import { Room } from 'src/rooms/room.entity';
+import { UsersMeetings } from 'src/users-meetings/users-meetings.entity';
 import { User } from 'src/users/user.entity';
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
-  ManyToMany,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Meeting {
+  @Exclude()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Room, (room) => room.name)
+  @ManyToOne(() => Room, (room) => room.id)
   room: Room;
 
-  @ManyToMany(() => User, (users) => users.name)
-  users: User[];
+  @OneToMany(() => UsersMeetings, (usersMeeting) => usersMeeting.meeting, {
+    onDelete: 'CASCADE',
+  })
+  participants: UsersMeetings[];
 
-  @ManyToOne(() => MeetingsRepresentatives, (meetingsRepresentatives) => meetingsRepresentatives.id)
-  meetingsRepresentatives: MeetingsRepresentatives;
+  @ManyToOne(() => Customer, (customer) => customer.company)
+  customer: Customer;
 
   @Column()
   startTime: Date;
@@ -33,6 +41,19 @@ export class Meeting {
   @Column()
   subject: string;
 
-  @OneToMany(() => User, (applicant) => applicant.name)
+  @ManyToOne(() => User, (applicant) => applicant.name)
   applicant: User;
+
+  @Exclude()
+  @Column({ default: true })
+  active: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
