@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -11,15 +12,22 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { RoomsService } from './rooms.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { CreateRoomDto } from './dtos/create-room.dto';
+import {
+  AuthExceptionMessage,
+  RoomsExceptionMessage,
+} from 'src/common/enums/errorMessages.enum';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { UsersService } from 'src/users/users.service';
-import { UpdateRoomDto } from './dtos/update-room.dto';
+import { CreateRoomDto } from './dtos/create-room.dto';
 import { RoomResponseDto } from './dtos/room-response.dto';
-import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import { UpdateRoomDto } from './dtos/update-room.dto';
+import { RoomsService } from './rooms.service';
+import { RoomNotFoundError } from 'src/errors/roomNotFound.error';
+import { RoomFoundError } from 'src/errors/roomFound.error';
 
 @Controller('rooms')
+@Serialize(RoomResponseDto)
 export class RoomsController {
   constructor(
     private roomsService: RoomsService,
@@ -29,16 +37,18 @@ export class RoomsController {
   @UseGuards(JwtAuthGuard)
   @Get('/findAll')
   async findAll() {
-    const rooms = await this.roomsService.findAll();
-    const roomsReturn = rooms.map((room) => new RoomResponseDto(room));
-    return roomsReturn;
+    return await this.roomsService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:name')
   async findRoom(@Param('name') name: string) {
-    const room = await this.roomsService.findRoom(name);
-    return new RoomResponseDto(room);
+    try {
+      return await this.roomsService.findRoom(name);
+    } catch (e: any) {
+      if (e instanceof RoomNotFoundError)
+        throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,12 +58,18 @@ export class RoomsController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const room = await this.roomsService.createRoom(
-      body.name,
-      body.capacity,
-      body.floor,
-    );
-    return new RoomResponseDto(room);
+
+    try {
+      const room = await this.roomsService.createRoom(
+        body.name,
+        body.capacity,
+        body.floor,
+      );
+      return room;
+    } catch (e: any) {
+      if (e instanceof RoomFoundError)
+        throw new BadRequestException(RoomsExceptionMessage.NAME_IN_USE);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -67,8 +83,12 @@ export class RoomsController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const room = await this.roomsService.updateRoom(name, body);
-    return new RoomResponseDto(room);
+    try {
+      return await this.roomsService.updateRoom(name, body);
+    } catch (e: any) {
+      if (e instanceof RoomNotFoundError)
+        throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,7 +98,11 @@ export class RoomsController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const room = await this.roomsService.deleteRoom(name);
-    return new RoomResponseDto(room);
+    try {
+      return await this.roomsService.deleteRoom(name);
+    } catch (e: any) {
+      if (e instanceof RoomNotFoundError)
+        throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+    }
   }
 }

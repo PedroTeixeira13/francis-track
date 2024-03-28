@@ -7,6 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './room.entity';
 import { RoomsExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import { RoomNotFoundError } from 'src/errors/roomNotFound.error';
+import { RoomFoundError } from 'src/errors/roomFound.error';
 
 @Injectable()
 export class RoomsService {
@@ -21,7 +23,7 @@ export class RoomsService {
     const room = await this.repo.findOne({ where: { name } });
 
     if (!room) {
-      throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+      throw new RoomNotFoundError()
     }
     return room;
   }
@@ -29,7 +31,7 @@ export class RoomsService {
   async createRoom(name: string, capacity: number, floor: number) {
     const rooms = await this.repo.findOne({ where: { name } });
     if (rooms) {
-      throw new BadRequestException(RoomsExceptionMessage.NAME_IN_USE);
+      throw new RoomFoundError();
     }
     const room = this.repo.create({ name, capacity, floor });
 
@@ -39,7 +41,7 @@ export class RoomsService {
   async updateRoom(name: string, attrs: Partial<Room>) {
     const room = await this.repo.findOne({ where: { name } });
     if (!room) {
-      throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+      throw new RoomNotFoundError()
     }
     Object.assign(room, attrs);
     return this.repo.save(room);
@@ -48,7 +50,7 @@ export class RoomsService {
   async deleteRoom(name: string) {
     const room = await this.findRoom(name);
     if (!room) {
-      throw new NotFoundException(RoomsExceptionMessage.NOT_FOUND);
+      throw new RoomNotFoundError()
     }
     room.deletedAt = new Date();
     room.active = false;

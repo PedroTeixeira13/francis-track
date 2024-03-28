@@ -1,15 +1,16 @@
-import { Meeting } from 'src/meetings/meeting.entity';
+import { Expose, Type } from 'class-transformer';
+import { MeetingResponseDto } from 'src/meetings/dtos/meeting-response.dto';
 import { RepresentativeResponseDto } from 'src/representatives/dtos/representative-response.dto';
-import { Customer } from '../customer.entity';
 
 export class CustomerResponseDto {
+  @Expose()
   company: string;
-  representatives: RepresentativeResponseDto[];
-  meetings: Meeting[];
 
-  constructor(customer: Customer) {
-    this.company = customer.company;
-    this.representatives = customer.representatives
-    this.meetings = customer.meetings;
-  }
+  @Expose()
+  @Type(() => RepresentativeResponseDto)
+  representatives: RepresentativeResponseDto[];
+
+  @Expose()
+  @Type(() => MeetingResponseDto)
+  meetings: MeetingResponseDto[];
 }

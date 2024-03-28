@@ -1,12 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MeetingsExceptionMessage } from 'src/common/enums/errorMessages.enum';
 import { CustomersService } from 'src/customers/customers.service';
+import { MeetingExceededParticipantsError } from 'src/errors/meetingExceededParticipants.error';
+import { MeetingIncompatibleTimeError } from 'src/errors/meetingIncompatibleTime.error';
+import { MeetingNotFoundError } from 'src/errors/meetingNotFound.error';
+import { UserNotFoundError } from 'src/errors/userNotFound.error';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { UsersMeetingsService } from 'src/users-meetings/users-meetings.service';
 import { UsersService } from 'src/users/users.service';
@@ -14,7 +12,6 @@ import checkDates from 'src/utils/checkDates';
 import checkOverlap from 'src/utils/checkOverlap';
 import { Repository } from 'typeorm';
 import { CreateMeetingDto } from './dtos/create-meeting.dto';
-import { MeetingResponseDto } from './dtos/meeting-response.dto';
 import { Meeting } from './meeting.entity';
 
 @Injectable()
@@ -50,9 +47,9 @@ export class MeetingsService {
       },
     });
     if (!meeting) {
-      throw new NotFoundException(MeetingsExceptionMessage.NOT_FOUND);
+      throw new MeetingNotFoundError();
     }
-    return new MeetingResponseDto(meeting);
+    return meeting;
   }
 
   async create(body: CreateMeetingDto, applicantId: string) {
@@ -68,9 +65,7 @@ export class MeetingsService {
     const repCount = newMeeting.customer.representatives;
 
     if (repCount.length + users.length > newMeeting.room.capacity) {
-      throw new UnprocessableEntityException(
-        MeetingsExceptionMessage.OUT_OF_CAPACITY,
-      );
+      throw new MeetingExceededParticipantsError();
     }
 
     const dates = checkDates(startTime, endTime);
@@ -82,7 +77,7 @@ export class MeetingsService {
     });
 
     if (!checkOverlap(sameRoomMeetings, newMeeting)) {
-      throw new ConflictException(MeetingsExceptionMessage.INCOMPATIBLE_TIME);
+      throw new MeetingIncompatibleTimeError();
     }
 
     let createdMeeting = new Meeting();
@@ -91,7 +86,7 @@ export class MeetingsService {
       await this.usersMeetingsService.createMeetingUser(users, createdMeeting);
     } catch (error) {
       await this.repo.delete(createdMeeting.id);
-      throw new NotFoundException(MeetingsExceptionMessage.USERS_NOT_FOUND);
+      throw new UserNotFoundError();
     }
 
     return createdMeeting;
@@ -100,7 +95,7 @@ export class MeetingsService {
   async delete(id: string) {
     const meeting = await this.repo.findOne({ where: { id } });
     if (!meeting) {
-      throw new NotFoundException(MeetingsExceptionMessage.NOT_FOUND);
+      throw new MeetingNotFoundError();
     }
     meeting.deletedAt = new Date();
     meeting.active = false;

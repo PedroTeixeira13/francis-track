@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -12,13 +13,17 @@ import {
 import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local-auth.guard';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { ChangeRoleDto } from './dtos/change-role.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UsersService } from './users.service';
+import { UserNotFoundError } from 'src/errors/userNotFound.error';
+import { UsersExceptionMessage } from 'src/common/enums/errorMessages.enum';
 
 @Controller('users')
+@Serialize(UserResponseDto)
 export class UsersController {
   constructor(
     private usersService: UsersService,
@@ -28,7 +33,7 @@ export class UsersController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   login(@Request() req): any {
-    return this.authService.login(req.user)
+    return this.authService.login(req.user);
   }
 
   @Post('/create')
@@ -39,21 +44,23 @@ export class UsersController {
       body.name,
       body.role,
     );
-    return new UserResponseDto(user);
+    return user;
   }
 
   @Get('/findAll')
   async findAll() {
-    const users = await this.usersService.findAll();
-    const usersReturn = users.map((user) => new UserResponseDto(user));
-    return usersReturn;
+    return await this.usersService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:username')
   async findUser(@Param('username') username: string) {
-    const user = await this.usersService.findOne(username);
-    return new UserResponseDto(user);
+    try {
+      return await this.usersService.findOne(username);
+    } catch (e: any) {
+      if (e instanceof UserNotFoundError)
+        throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,8 +69,12 @@ export class UsersController {
     @Param('username') username: string,
     @Body() body: UpdateUserDto,
   ) {
-    const user = await this.usersService.update(username, body);
-    return new UserResponseDto(user);
+    try {
+      return await this.usersService.update(username, body);
+    } catch (e: any) {
+      if (e instanceof UserNotFoundError)
+        throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -72,14 +83,22 @@ export class UsersController {
     @Param('username') username: string,
     @Body() role: ChangeRoleDto,
   ) {
-    const user = await this.usersService.changeRole(username, role.role);
-    return new UserResponseDto(user);
+    try {
+      return await this.usersService.changeRole(username, role.role);
+    } catch (e: any) {
+      if (e instanceof UserNotFoundError)
+        throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('delete/:username')
   async delete(@Param('username') username: string) {
-    const user = await this.usersService.delete(username);
-    return new UserResponseDto(user);
+    try {
+      return await this.usersService.delete(username);
+    } catch (e: any) {
+      if (e instanceof UserNotFoundError)
+        throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+    }
   }
 }

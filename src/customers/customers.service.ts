@@ -1,12 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Customer } from './customer.entity';
+import { CustomerFoundError } from 'src/errors/customerFound.error';
+import { CustomerNotFoundError } from 'src/errors/customerNotFound.error';
 import { Repository } from 'typeorm';
-import { CustomerExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import { Customer } from './customer.entity';
 
 @Injectable()
 export class CustomersService {
@@ -26,7 +23,7 @@ export class CustomersService {
     });
 
     if (!customer) {
-      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+      throw new CustomerNotFoundError();
     }
     return customer;
   }
@@ -34,7 +31,7 @@ export class CustomersService {
   async createCustomer(company: string) {
     const customers = await this.repo.findOne({ where: { company } });
     if (customers) {
-      throw new BadRequestException(CustomerExceptionMessage.NAME_IN_USE);
+      throw new CustomerFoundError();
     }
     const customer = this.repo.create({ company });
 
@@ -44,19 +41,21 @@ export class CustomersService {
   async updateCustomer(company: string, attrs: Partial<Customer>) {
     const customer = await this.repo.findOne({ where: { company } });
     if (!customer) {
-      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+      throw new CustomerNotFoundError();
     }
     Object.assign(customer, attrs);
     return this.repo.save(customer);
   }
 
   async deleteRoom(company: string) {
-    const customer = await this.findCustomer(company);
+    const customer = await this.repo.findOne({
+      where: { company },
+      relations: { representatives: true },
+    });
+
     if (!customer) {
-      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+      throw new CustomerNotFoundError();
     }
-    customer.deletedAt = new Date();
-    customer.active = false;
 
     return this.repo.save(customer);
   }

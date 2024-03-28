@@ -1,13 +1,12 @@
-import { Room } from '../room.entity';
+import { Expose } from 'class-transformer';
 
 export class RoomResponseDto {
+  @Expose()
   name: string;
-  capacity: number;
-  floor: number;
 
-  constructor(room: Room) {
-    this.name = room.name;
-    this.floor = room.floor;
-    this.capacity = room.capacity;
-  }
+  @Expose()
+  capacity: number;
+
+  @Expose()
+  floor: number;
 }

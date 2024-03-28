@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -18,7 +20,12 @@ import { RepresentativeResponseDto } from './dtos/representative-response.dto';
 import { UpdateRepresentativeDto } from './dtos/update-representative.dto';
 import { Representative } from './representative.entity';
 import { RepresentativesService } from './representatives.service';
-import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import {
+  AuthExceptionMessage,
+  RepresentativesExceptionMessage,
+} from 'src/common/enums/errorMessages.enum';
+import { RepresentativeNotFoundError } from 'src/errors/representativeNotFound.error';
+import { RepresentativeFoundError } from 'src/errors/representativeFound.error';
 
 @Controller('representatives')
 export class RepresentativesController {
@@ -31,15 +38,18 @@ export class RepresentativesController {
   @UseGuards(JwtAuthGuard)
   @Get('/findAll')
   async findAll() {
-    const reps = await this.representativesService.findAll();
-    return reps.map((rep) => new RepresentativeResponseDto(rep));
+    return await this.representativesService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('/:name')
   async findRepresentative(@Param('name') name: string) {
-    const rep = await this.representativesService.findOne(name);
-    return new RepresentativeResponseDto(rep);
+    try {
+      return await this.representativesService.findOne(name);
+    } catch (e: any) {
+      if (e instanceof RepresentativeNotFoundError)
+        throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -53,11 +63,18 @@ export class RepresentativesController {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
 
-    const rep = await this.representativesService.create(
-      body.name,
-      body.company,
-    );
-    return new RepresentativeResponseDto(rep);
+    try {
+      const rep = await this.representativesService.create(
+        body.name,
+        body.company,
+      );
+      return rep;
+    } catch (e: any) {
+      if (e instanceof RepresentativeFoundError)
+        throw new BadRequestException(
+          RepresentativesExceptionMessage.USERNAME_IN_USE,
+        );
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -76,8 +93,12 @@ export class RepresentativesController {
 
     representative.company = customer;
     representative.name = body.name;
-    const rep = await this.representativesService.update(name, representative);
-    return new RepresentativeResponseDto(rep);
+    try {
+      return await this.representativesService.update(name, representative);
+    } catch (e: any) {
+      if (e instanceof RepresentativeNotFoundError)
+        throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -87,7 +108,11 @@ export class RepresentativesController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const rep = await this.representativesService.delete(name);
-    return new RepresentativeResponseDto(rep);
+    try {
+      return await this.representativesService.delete(name);
+    } catch (e: any) {
+      if (e instanceof RepresentativeNotFoundError)
+        throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+    }
   }
 }

@@ -1,31 +1,42 @@
 import { differenceInMinutes } from 'date-fns';
 import { Meeting } from '../meeting.entity';
+import { Expose, Type } from 'class-transformer';
+import { UserResponseDto } from 'src/users/dtos/user-response.dto';
+import { RoomResponseDto } from 'src/rooms/dtos/room-response.dto';
+import { UsersMeetingsDto } from 'src/users-meetings/dto/users-meetings.dto';
+import { CustomerResponseDto } from 'src/customers/dtos/customer-response.dto';
+import { RepresentativeResponseDto } from 'src/representatives/dtos/representative-response.dto';
 
 export class MeetingResponseDto {
+  @Expose()
   subject: string;
-  startTime: Date;
-  endTime: Date;
-  meetingDuration: string;
-  applicant: string;
-  room: string;
-  participants: string[];
-  customer: string;
-  representatives: string[];
 
-  constructor(meeting: Meeting) {
-    this.subject = meeting.subject;
-    this.startTime = meeting.startTime;
-    this.endTime = meeting.endTime;
-    this.meetingDuration =
-      differenceInMinutes(meeting.endTime, meeting.startTime) + ' minutes';
-    this.applicant = meeting.applicant.username;
-    this.room = meeting.room.name;
-    this.participants = meeting.participants.map(
-      (userMeeting) => userMeeting.user.username,
-    );
-    this.customer = meeting.customer.company;
-    this.representatives = meeting.customer.representatives.map(
-      (rep) => rep.name,
-    );
-  }
+  @Expose()
+  startTime: Date;
+
+  @Expose()
+  endTime: Date;
+
+  @Expose()
+  meetingDuration: string;
+
+  @Expose()
+  @Type(() => UserResponseDto)
+  applicant: UserResponseDto;
+
+  @Expose()
+  @Type(() => RoomResponseDto)
+  room: RoomResponseDto;
+
+  @Expose()
+  @Type(() => UsersMeetingsDto)
+  participants: UsersMeetingsDto[];
+
+  @Expose()
+  @Type(() => CustomerResponseDto)
+  customer: CustomerResponseDto;
+
+  @Expose()
+  @Type(() => RepresentativeResponseDto)
+  representatives: RepresentativeResponseDto[];
 }

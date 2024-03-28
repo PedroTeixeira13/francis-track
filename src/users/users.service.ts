@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UsersExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import { UserNotFoundError } from 'src/errors/userNotFound.error';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +23,7 @@ export class UsersService {
   async findOne(username: string): Promise<User | undefined> {
     const user = await this.repo.findOne({ where: { username } });
     if (!user || !user.active) {
-      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+      throw new UserNotFoundError();
     }
     return user;
   }
@@ -34,7 +35,7 @@ export class UsersService {
   async findById(id: string): Promise<User | undefined> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user || !user.active) {
-      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+      throw new UserNotFoundError();
     }
     return user;
   }
@@ -42,7 +43,7 @@ export class UsersService {
   async update(username: string, attrs: Partial<User>) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+      throw new UserNotFoundError();
     }
     Object.assign(user, attrs);
     return this.repo.save(user);
@@ -51,7 +52,7 @@ export class UsersService {
   async changeRole(username: string, role: string) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+      throw new UserNotFoundError();
     }
     user.role = role;
     return this.repo.save(user);
@@ -60,7 +61,7 @@ export class UsersService {
   async delete(username: string) {
     const user = await this.repo.findOne({ where: { username } });
     if (!user) {
-      throw new NotFoundException(UsersExceptionMessage.NOT_FOUND);
+      throw new UserNotFoundError();
     }
     user.active = false;
     user.deletedAt = new Date();

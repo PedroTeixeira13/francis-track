@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -11,7 +13,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { AuthExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import {
+  AuthExceptionMessage,
+  CustomerExceptionMessage,
+} from 'src/common/enums/errorMessages.enum';
+import { CustomerFoundError } from 'src/errors/customerFound.error';
+import { CustomerNotFoundError } from 'src/errors/customerNotFound.error';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { UsersService } from 'src/users/users.service';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
@@ -20,6 +28,7 @@ import { UpdateCustomerDto } from './dtos/update-customer.dto';
 
 @Controller('customers')
 @UseGuards(JwtAuthGuard)
+@Serialize(CustomerResponseDto)
 export class CustomersController {
   constructor(
     private customersService: CustomersService,
@@ -28,14 +37,19 @@ export class CustomersController {
 
   @Get('/findAll')
   async findAll() {
-    const customers = await this.customersService.findAll();
-    return customers.map((cust) => new CustomerResponseDto(cust));
+    return await this.customersService.findAll();
   }
 
   @Get('/:company')
   async findCustomer(@Param('company') company: string) {
-    const cust = await this.customersService.findCustomer(company);
-    return new CustomerResponseDto(cust);
+    try {
+      return await this.customersService.findCustomer(company);
+    } catch (e: any) {
+      console.error(e);
+
+      if (e instanceof CustomerNotFoundError)
+        throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+    }
   }
 
   @Post('/create')
@@ -44,8 +58,13 @@ export class CustomersController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const cust = await this.customersService.createCustomer(body.company);
-    return new CustomerResponseDto(cust);
+
+    try {
+      return await this.customersService.createCustomer(body.company);
+    } catch (e: any) {
+      if (e instanceof CustomerFoundError)
+        throw new BadRequestException(CustomerExceptionMessage.NAME_IN_USE);
+    }
   }
 
   @Patch('/update/:company')
@@ -58,8 +77,12 @@ export class CustomersController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const cust = await this.customersService.updateCustomer(company, body);
-    return new CustomerResponseDto(cust);
+
+    try {
+      return await this.customersService.updateCustomer(company, body);
+    } catch (e: any) {
+      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+    }
   }
 
   @Delete('/delete/:company')
@@ -68,7 +91,11 @@ export class CustomersController {
     if (user.role !== 'admin') {
       throw new UnauthorizedException(AuthExceptionMessage.NO_PERMISSION);
     }
-    const cust = await this.customersService.deleteRoom(company);
-    return new CustomerResponseDto(cust);
+
+    try {
+      return await this.customersService.deleteRoom(company);
+    } catch (e: any) {
+      throw new NotFoundException(CustomerExceptionMessage.NOT_FOUND);
+    }
   }
 }

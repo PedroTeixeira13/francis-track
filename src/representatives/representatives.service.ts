@@ -8,6 +8,8 @@ import { Representative } from './representative.entity';
 import { Repository } from 'typeorm';
 import { CustomersService } from 'src/customers/customers.service';
 import { RepresentativesExceptionMessage } from 'src/common/enums/errorMessages.enum';
+import { RepresentativeNotFoundError } from 'src/errors/representativeNotFound.error';
+import { RepresentativeFoundError } from 'src/errors/representativeFound.error';
 
 @Injectable()
 export class RepresentativesService {
@@ -29,7 +31,7 @@ export class RepresentativesService {
       relations: { company: true },
     });
     if (!representative || !representative.active) {
-      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+      throw new RepresentativeNotFoundError();
     }
     return representative;
   }
@@ -41,9 +43,7 @@ export class RepresentativesService {
   async create(name: string, company: string) {
     const representatives = await this.checkOne(name);
     if (representatives !== null) {
-      throw new BadRequestException(
-        RepresentativesExceptionMessage.USERNAME_IN_USE,
-      );
+      throw new RepresentativeFoundError();
     }
 
     const realCompany = await this.customersService.findCustomer(company);
@@ -58,7 +58,7 @@ export class RepresentativesService {
   async update(name: string, attrs: Partial<Representative>) {
     const representative = await this.repo.findOne({ where: { name } });
     if (!representative) {
-      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+      throw new RepresentativeNotFoundError()
     }
     Object.assign(representative, attrs);
     return this.repo.save(representative);
@@ -67,7 +67,7 @@ export class RepresentativesService {
   async delete(name: string) {
     const representative = await this.repo.findOne({ where: { name } });
     if (!representative) {
-      throw new NotFoundException(RepresentativesExceptionMessage.NOT_FOUND);
+      throw new RepresentativeNotFoundError()
     }
     representative.active = false;
     representative.deletedAt = new Date();
